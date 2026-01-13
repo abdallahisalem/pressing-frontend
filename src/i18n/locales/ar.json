@@ -16,7 +16,11 @@
     "actions": "الإجراءات",
     "confirm": "تأكيد",
     "yes": "نعم",
-    "no": "لا"
+    "no": "لا",
+    "changeLanguage": "تغيير اللغة؟",
+    "changeLanguageMessage": "هل أنت متأكد من تغيير اللغة؟ سيتم تغيير الواجهة فوراً.",
+    "logoutConfirm": "تأكيد تسجيل الخروج",
+    "logoutMessage": "هل أنت متأكد من تسجيل الخروج؟"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول إلى نظام المغسلة",
@@ -94,6 +98,8 @@
     "addressPlaceholder": "العنوان الكامل (اختياري)",
     "active": "نشط",
     "inactive": "غير نشط",
+    "activate": "تفعيل",
+    "deactivate": "إلغاء التفعيل",
     "status": "الحالة",
     "createdAt": "تاريخ الإنشاء",
     "searchPlaceholder": "البحث بالاسم أو العنوان...",

@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { ordersApi } from '../api/orders';
-import { Button, StatusBadge, ConfirmDialog, LanguageSwitcher } from '../components';
+import { Button, StatusBadge, ConfirmDialog, UserDropdown } from '../components';
 import type { Order, OrderStatus } from '../types';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
@@ -12,13 +12,14 @@ import type { ApiError } from '../types';
 export const OrderDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { t } = useTranslation();
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [isConfirmPaymentOpen, setIsConfirmPaymentOpen] = useState(false);
   const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   useEffect(() => {
     loadOrder();
@@ -120,28 +121,48 @@ export const OrderDetails: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}
-      <nav className="bg-white shadow-sm no-print">
+      <nav className="bg-white shadow-sm border-b border-gray-200 no-print">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-base sm:text-xl font-bold text-gray-900">
-                <span className="hidden sm:inline">{t('orderDetails.title')}</span>
-                <span className="sm:hidden">{t('orders.order')}</span>
-              </h1>
-            </div>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <img src="/vite.svg" alt="Logo" className="h-10 w-10" />
+              <div className="text-left">
+                <h1 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">
+                  <span className="hidden sm:inline">{t('dashboard.title')}</span>
+                  <span className="sm:hidden">{t('orders.order')}</span>
+                </h1>
+                <p className="text-xs text-gray-500 hidden sm:block">{t('orderDetails.title')}</p>
+              </div>
+            </button>
             <div className="flex items-center gap-2">
               <Button variant="secondary" size="sm" onClick={() => navigate('/orders')}>
                 <span className="hidden sm:inline">{t('orders.backToOrders')}</span>
                 <span className="sm:hidden">{t('common.back')}</span>
               </Button>
-              <LanguageSwitcher />
-              <Button variant="secondary" size="sm" onClick={handleLogout}>
-                {t('common.logout')}
-              </Button>
+              <UserDropdown
+                userName={user?.name || 'User'}
+                userRole={user?.role || 'SUPERVISOR'}
+                pressingName={user?.pressingName}
+                onLogout={() => setIsLogoutConfirmOpen(true)}
+              />
             </div>
           </div>
         </div>
       </nav>
+
+      {/* Logout Confirmation */}
+      <ConfirmDialog
+        isOpen={isLogoutConfirmOpen}
+        onClose={() => setIsLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+        title={t('common.logoutConfirm')}
+        message={t('common.logoutMessage')}
+        confirmText={t('common.logout')}
+        confirmVariant="danger"
+      />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">

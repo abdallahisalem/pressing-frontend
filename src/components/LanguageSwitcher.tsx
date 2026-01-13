@@ -1,20 +1,59 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ConfirmDialog } from './ConfirmDialog';
 
 export const LanguageSwitcher: React.FC = () => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [pendingLanguage, setPendingLanguage] = useState<string>('');
 
-  const toggleLanguage = () => {
-    const newLang = i18n.language === 'en' ? 'ar' : 'en';
-    i18n.changeLanguage(newLang);
+  const handleLanguageClick = (lang: string) => {
+    if (lang === i18n.language) return;
+    setPendingLanguage(lang);
+    setIsConfirmOpen(true);
+  };
+
+  const handleConfirm = () => {
+    i18n.changeLanguage(pendingLanguage);
+    setIsConfirmOpen(false);
   };
 
   return (
-    <button
-      onClick={toggleLanguage}
-      className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-      aria-label="Switch language"
-    >
-      {i18n.language === 'en' ? 'العربية' : 'English'}
-    </button>
+    <>
+      <div className="flex gap-1 items-center">
+        <button
+          onClick={() => handleLanguageClick('en')}
+          className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+            i18n.language === 'en'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+          aria-label="Switch to English"
+        >
+          EN
+        </button>
+        <button
+          onClick={() => handleLanguageClick('ar')}
+          className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+            i18n.language === 'ar'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-gray-600 hover:bg-gray-100'
+          }`}
+          aria-label="Switch to Arabic"
+        >
+          AR
+        </button>
+      </div>
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirm}
+        title={t('common.changeLanguage')}
+        message={t('common.changeLanguageMessage')}
+        confirmText={t('common.confirm')}
+        confirmVariant="primary"
+      />
+    </>
   );
 };

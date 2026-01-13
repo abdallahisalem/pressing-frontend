@@ -7,8 +7,10 @@ export interface LoginResponse {
   tokenType: string;
   expiresIn: number;
   userId: number;
+  userName: string;
   role: UserRole;
   pressingId: number;
+  pressingName: string;
 }
 
 export interface User {
@@ -53,8 +55,10 @@ export interface AuthState {
   token: string | null;
   user: {
     id: number;
+    name: string;
     role: UserRole;
     pressingId: number;
+    pressingName: string;
   } | null;
 }
 

@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { clientsApi } from '../api/clients';
-import { Button, Input, Select, Modal, SearchInput, LanguageSwitcher } from '../components';
+import { Button, Input, Select, Modal, SearchInput, UserDropdown, ConfirmDialog } from '../components';
 import type { Client, CreateClientRequest } from '../types';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
@@ -30,6 +30,7 @@ export const Clients: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const {
     register,
@@ -129,28 +130,44 @@ export const Clients: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}
-      <nav className="bg-white shadow-sm">
+      <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-base sm:text-xl font-bold text-gray-900">
-                <span className="hidden sm:inline">{t('dashboard.title')}</span>
-                <span className="sm:hidden">{t('clients.clients')}</span>
-              </h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="secondary" size="sm" onClick={() => navigate('/dashboard')}>
-                <span className="hidden sm:inline">{t('common.dashboard')}</span>
-                <span className="sm:hidden">{t('common.home')}</span>
-              </Button>
-              <LanguageSwitcher />
-              <Button variant="secondary" size="sm" onClick={handleLogout}>
-                {t('common.logout')}
-              </Button>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <img src="/vite.svg" alt="Logo" className="h-10 w-10" />
+              <div className="text-left">
+                <h1 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">
+                  <span className="hidden sm:inline">{t('dashboard.title')}</span>
+                  <span className="sm:hidden">{t('clients.clients')}</span>
+                </h1>
+                <p className="text-xs text-gray-500 hidden sm:block">{t('clients.title')}</p>
+              </div>
+            </button>
+            <div className="flex items-center gap-3">
+              <UserDropdown
+                userName={user?.name || 'User'}
+                userRole={user?.role || 'SUPERVISOR'}
+                pressingName={user?.pressingName}
+                onLogout={() => setIsLogoutConfirmOpen(true)}
+              />
             </div>
           </div>
         </div>
       </nav>
+
+      {/* Logout Confirmation */}
+      <ConfirmDialog
+        isOpen={isLogoutConfirmOpen}
+        onClose={() => setIsLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+        title={t('common.logoutConfirm')}
+        message={t('common.logoutMessage')}
+        confirmText={t('common.logout')}
+        confirmVariant="danger"
+      />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">

@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { pressingsApi } from '../api/pressings';
-import { Button, Input, Modal, ConfirmDialog, LanguageSwitcher } from '../components';
+import { Button, Input, Modal, ConfirmDialog, UserDropdown } from '../components';
 import type { Pressing, CreatePressingRequest, UpdatePressingRequest } from '../types';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
@@ -42,6 +42,7 @@ export const Pressings: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletingPressing, setDeletingPressing] = useState<Pressing | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<PressingFormData>({
     resolver: zodResolver(pressingSchema),
@@ -189,70 +190,88 @@ export const Pressings: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}
-      <nav className="bg-white shadow-sm">
+      <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-base sm:text-xl font-bold text-gray-900">
-                <span className="hidden sm:inline">{t('pressings.title')}</span>
-                <span className="sm:hidden">{t('pressings.pressings')}</span>
-              </h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="secondary" size="sm" onClick={() => navigate('/dashboard')}>
-                <span className="hidden sm:inline">{t('common.dashboard')}</span>
-                <span className="sm:hidden">{t('common.home')}</span>
-              </Button>
-              <LanguageSwitcher />
-              <Button variant="secondary" size="sm" onClick={handleLogout}>
-                {t('common.logout')}
-              </Button>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <img src="/vite.svg" alt="Logo" className="h-10 w-10" />
+              <div className="text-left">
+                <h1 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">
+                  <span className="hidden sm:inline">{t('dashboard.title')}</span>
+                  <span className="sm:hidden">{t('pressings.pressings')}</span>
+                </h1>
+                <p className="text-xs text-gray-500 hidden sm:block">{t('pressings.title')}</p>
+              </div>
+            </button>
+            <div className="flex items-center gap-3">
+              <UserDropdown
+                userName={user?.name || 'User'}
+                userRole={user?.role || 'ADMIN'}
+                pressingName={user?.pressingName}
+                onLogout={() => setIsLogoutConfirmOpen(true)}
+              />
             </div>
           </div>
         </div>
       </nav>
 
+      {/* Logout Confirmation */}
+      <ConfirmDialog
+        isOpen={isLogoutConfirmOpen}
+        onClose={() => setIsLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+        title={t('common.logoutConfirm')}
+        message={t('common.logoutMessage')}
+        confirmText={t('common.logout')}
+        confirmVariant="danger"
+      />
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {/* Toolbar */}
-          <div className="bg-white rounded-lg shadow p-4 mb-6">
-            <div className="flex flex-col sm:flex-row gap-3">
+          <div className="bg-white rounded-lg shadow">
+            {/* Header */}
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('pressings.title')}</h2>
+                <div className="flex gap-2">
+                  <Button
+                    variant={showActiveOnly ? 'primary' : 'secondary'}
+                    size="sm"
+                    onClick={() => setShowActiveOnly(!showActiveOnly)}
+                    className="whitespace-nowrap"
+                  >
+                    {showActiveOnly ? t('pressings.activeOnly') : t('pressings.showAll')}
+                  </Button>
+                  {isAdmin && (
+                    <Button onClick={() => setIsCreateModalOpen(true)} className="whitespace-nowrap">
+                      {t('pressings.createPressing')}
+                    </Button>
+                  )}
+                </div>
+              </div>
               <Input
                 type="text"
                 placeholder={t('pressings.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1"
               />
-              <div className="flex gap-2">
-                <Button
-                  variant={showActiveOnly ? 'primary' : 'secondary'}
-                  onClick={() => setShowActiveOnly(!showActiveOnly)}
-                  className="whitespace-nowrap"
-                >
-                  {showActiveOnly ? t('pressings.activeOnly') : t('pressings.showAll')}
-                </Button>
-                {isAdmin && (
-                  <Button onClick={() => setIsCreateModalOpen(true)} className="whitespace-nowrap">
-                    {t('pressings.createPressing')}
-                  </Button>
-                )}
-              </div>
             </div>
-          </div>
 
-          {/* Pressings List */}
-          {filteredPressings.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-8 text-center">
-              <p className="text-gray-500">
-                {searchQuery ? t('pressings.noPressingsSearch') : t('pressings.noPressings')}
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table View */}
-              <div className="hidden sm:block bg-white rounded-lg shadow overflow-hidden">
+            {/* Empty State */}
+            {filteredPressings.length === 0 ? (
+              <div className="p-8 text-center">
+                <p className="text-gray-500">
+                  {searchQuery ? t('pressings.noPressingsSearch') : t('pressings.noPressings')}
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden sm:block overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -299,30 +318,29 @@ export const Pressings: React.FC = () => {
                           {new Date(pressing.createdAt).toLocaleDateString()}
                         </td>
                         {isAdmin && (
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => handleToggleActive(pressing)}
-                              >
-                                {pressing.active ? t('pressings.inactive') : t('pressings.active')}
-                              </Button>
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => handleEditClick(pressing)}
-                              >
-                                {t('common.edit')}
-                              </Button>
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={() => handleDeleteClick(pressing)}
-                              >
-                                {t('common.delete')}
-                              </Button>
-                            </div>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                            <button
+                              onClick={() => handleEditClick(pressing)}
+                              className="text-blue-600 hover:text-blue-900 transition-colors"
+                            >
+                              {t('common.edit')}
+                            </button>
+                            <button
+                              onClick={() => handleToggleActive(pressing)}
+                              className={`transition-colors ${
+                                pressing.active
+                                  ? 'text-yellow-600 hover:text-yellow-900'
+                                  : 'text-green-600 hover:text-green-900'
+                              }`}
+                            >
+                              {pressing.active ? t('pressings.deactivate') : t('pressings.activate')}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(pressing)}
+                              className="text-red-600 hover:text-red-900 transition-colors"
+                            >
+                              {t('common.delete')}
+                            </button>
                           </td>
                         )}
                       </tr>
@@ -332,13 +350,13 @@ export const Pressings: React.FC = () => {
               </div>
 
               {/* Mobile Card View */}
-              <div className="sm:hidden space-y-4">
+              <div className="sm:hidden divide-y divide-gray-200">
                 {filteredPressings.map((pressing) => (
-                  <div key={pressing.id} className="bg-white rounded-lg shadow p-4">
-                    <div className="flex justify-between items-start mb-3">
+                  <div key={pressing.id} className="p-4 hover:bg-gray-50">
+                    <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{pressing.name}</h3>
-                        <p className="text-sm text-gray-500 mt-1">{pressing.address || '-'}</p>
+                        <h3 className="font-medium text-gray-900">{pressing.name}</h3>
+                        <p className="text-sm text-gray-600 mt-1">{pressing.address || '-'}</p>
                       </div>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -350,35 +368,33 @@ export const Pressings: React.FC = () => {
                         {pressing.active ? t('pressings.active') : t('pressings.inactive')}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mb-3">
+                    <div className="text-xs text-gray-500 mb-3">
                       {t('pressings.createdAt')}: {new Date(pressing.createdAt).toLocaleDateString()}
-                    </p>
+                    </div>
                     {isAdmin && (
-                      <div className="flex gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleToggleActive(pressing)}
-                          className="flex-1"
-                        >
-                          {pressing.active ? t('pressings.inactive') : t('pressings.active')}
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="sm"
+                      <div className="flex gap-3 text-sm">
+                        <button
                           onClick={() => handleEditClick(pressing)}
-                          className="flex-1"
+                          className="text-blue-600 hover:text-blue-900 transition-colors"
                         >
                           {t('common.edit')}
-                        </Button>
-                        <Button
-                          variant="danger"
-                          size="sm"
+                        </button>
+                        <button
+                          onClick={() => handleToggleActive(pressing)}
+                          className={`transition-colors ${
+                            pressing.active
+                              ? 'text-yellow-600 hover:text-yellow-900'
+                              : 'text-green-600 hover:text-green-900'
+                          }`}
+                        >
+                          {pressing.active ? t('pressings.deactivate') : t('pressings.activate')}
+                        </button>
+                        <button
                           onClick={() => handleDeleteClick(pressing)}
-                          className="flex-1"
+                          className="text-red-600 hover:text-red-900 transition-colors"
                         >
                           {t('common.delete')}
-                        </Button>
+                        </button>
                       </div>
                     )}
                   </div>
@@ -386,6 +402,7 @@ export const Pressings: React.FC = () => {
               </div>
             </>
           )}
+          </div>
         </div>
       </main>
 
@@ -424,13 +441,14 @@ export const Pressings: React.FC = () => {
             <input
               {...register('active')}
               type="checkbox"
+              id="active-create"
               defaultChecked
-              className="h-4 w-4 text-blue-600 rounded"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label className="mr-2 text-sm font-medium text-gray-700">
+            <label htmlFor="active-create" className="ml-2 text-sm font-medium text-gray-700">
               {t('pressings.active')}
             </label>
-            <p className="text-xs text-gray-500">({t('pressings.activeHelperText')})</p>
+            <span className="ml-2 text-xs text-gray-500">({t('pressings.activeHelperText')})</span>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
@@ -487,12 +505,13 @@ export const Pressings: React.FC = () => {
             <input
               {...register('active')}
               type="checkbox"
-              className="h-4 w-4 text-blue-600 rounded"
+              id="active-edit"
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
-            <label className="mr-2 text-sm font-medium text-gray-700">
+            <label htmlFor="active-edit" className="ml-2 text-sm font-medium text-gray-700">
               {t('pressings.active')}
             </label>
-            <p className="text-xs text-gray-500">({t('pressings.activeHelperText')})</p>
+            <span className="ml-2 text-xs text-gray-500">({t('pressings.activeHelperText')})</span>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

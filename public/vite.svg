@@ -1,1 +1,74 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="95" fill="#2563eb" opacity="0.1"/>
+
+  <!-- Main Icon Group -->
+  <g transform="translate(50, 40)">
+    <!-- Hanger Hook -->
+    <path d="M 50 5 Q 50 0, 55 0 Q 60 0, 60 5 L 60 15"
+          stroke="#2563eb"
+          stroke-width="4"
+          stroke-linecap="round"
+          fill="none"/>
+
+    <!-- Hanger Bar -->
+    <path d="M 10 15 L 50 15 L 50 20 Q 50 25, 55 25 Q 60 25, 60 20 L 60 15 L 90 15"
+          stroke="#2563eb"
+          stroke-width="4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          fill="none"/>
+
+    <!-- Shirt Outline -->
+    <!-- Collar -->
+    <path d="M 40 25 L 45 30 L 55 30 L 60 25"
+          fill="#2563eb"
+          opacity="0.9"/>
+
+    <!-- Body -->
+    <path d="M 30 30 L 20 45 L 20 95 Q 20 100, 25 100 L 75 100 Q 80 100, 80 95 L 80 45 L 70 30 L 60 30 L 60 35 L 55 40 L 45 40 L 40 35 L 40 30 Z"
+          fill="#2563eb"
+          opacity="0.2"
+          stroke="#2563eb"
+          stroke-width="2"/>
+
+    <!-- Sleeves -->
+    <path d="M 20 45 L 5 50 L 0 65 Q 0 70, 5 70 L 20 65 Z"
+          fill="#2563eb"
+          opacity="0.3"
+          stroke="#2563eb"
+          stroke-width="2"/>
+
+    <path d="M 80 45 L 95 50 L 100 65 Q 100 70, 95 70 L 80 65 Z"
+          fill="#2563eb"
+          opacity="0.3"
+          stroke="#2563eb"
+          stroke-width="2"/>
+
+    <!-- Buttons -->
+    <circle cx="50" cy="55" r="2.5" fill="#2563eb"/>
+    <circle cx="50" cy="70" r="2.5" fill="#2563eb"/>
+    <circle cx="50" cy="85" r="2.5" fill="#2563eb"/>
+
+    <!-- Sparkle Effects (Clean/Fresh) -->
+    <g opacity="0.8">
+      <!-- Top left sparkle -->
+      <path d="M 15 20 L 17 22 L 15 24 L 13 22 Z" fill="#2563eb"/>
+      <path d="M 15 18 L 15 26" stroke="#2563eb" stroke-width="1"/>
+      <path d="M 11 22 L 19 22" stroke="#2563eb" stroke-width="1"/>
+
+      <!-- Top right sparkle -->
+      <path d="M 85 20 L 87 22 L 85 24 L 83 22 Z" fill="#2563eb"/>
+      <path d="M 85 18 L 85 26" stroke="#2563eb" stroke-width="1"/>
+      <path d="M 81 22 L 89 22" stroke="#2563eb" stroke-width="1"/>
+    </g>
+  </g>
+
+  <!-- Bottom accent - wave (representing water/cleaning) -->
+  <path d="M 20 160 Q 40 155, 60 160 T 100 160 T 140 160 T 180 160"
+        stroke="#2563eb"
+        stroke-width="3"
+        fill="none"
+        opacity="0.4"
+        stroke-linecap="round"/>
+</svg>

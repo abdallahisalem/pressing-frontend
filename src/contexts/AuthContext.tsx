@@ -10,8 +10,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<{
     id: number;
+    name: string;
     role: UserRole;
     pressingId: number;
+    pressingName: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,11 +38,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem('token', response.accessToken);
       setToken(response.accessToken);
 
-      // Store user info
+      // Store user info with new fields
       const userData = {
         id: response.userId,
+        name: response.userName || 'User', // Fallback for backward compatibility
         role: response.role,
         pressingId: response.pressingId,
+        pressingName: response.pressingName || 'Pressing', // Fallback for backward compatibility
       };
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);

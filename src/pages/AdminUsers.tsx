@@ -4,10 +4,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { usersApi } from '../api/users';
-import { Button, Input, Select, Modal } from '../components';
-import type { User, CreateUserRequest, UpdateUserRequest, UserRole } from '../types';
+import { pressingsApi } from '../api/pressings';
+import { Button, Input, Select, Modal, ConfirmDialog, UserDropdown } from '../components';
+import type { User, CreateUserRequest, UpdateUserRequest, UserRole, Pressing } from '../types';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
 
@@ -24,13 +26,17 @@ type UserFormData = z.infer<typeof userSchema>;
 
 export const AdminUsers: React.FC = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const [users, setUsers] = useState<User[]>([]);
+  const [pressings, setPressings] = useState<Pressing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingPressings, setIsLoadingPressings] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const {
     register,
@@ -57,8 +63,22 @@ export const AdminUsers: React.FC = () => {
     }
   };
 
+  const loadPressings = async () => {
+    setIsLoadingPressings(true);
+    try {
+      const data = await pressingsApi.getAllPressings(true); // Load only active pressings
+      setPressings(data);
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiError>;
+      toast.error(axiosError.response?.data?.message || 'Failed to load pressings');
+    } finally {
+      setIsLoadingPressings(false);
+    }
+  };
+
   useEffect(() => {
     loadUsers();
+    loadPressings();
   }, []);
 
   const handleCreateUser = async (data: UserFormData) => {
@@ -177,38 +197,58 @@ export const AdminUsers: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}
-      <nav className="bg-white shadow-sm">
+      <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">
-                Pressing Management System
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="secondary" size="sm" onClick={() => navigate('/dashboard')}>
-                Dashboard
-              </Button>
-              <Button variant="secondary" size="sm" onClick={handleLogout}>
-                Logout
-              </Button>
+          <div className="flex justify-between items-center h-16">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
+              <img src="/vite.svg" alt="Logo" className="h-10 w-10" />
+              <div className="text-left">
+                <h1 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">
+                  Pressing Management System
+                </h1>
+                <p className="text-xs text-gray-500">User Management</p>
+              </div>
+            </button>
+            <div className="flex items-center gap-3">
+              <UserDropdown
+                userName={user?.name || 'User'}
+                userRole={user?.role || 'ADMIN'}
+                pressingName={user?.pressingName}
+                onLogout={() => setIsLogoutConfirmOpen(true)}
+              />
             </div>
           </div>
         </div>
       </nav>
+
+      {/* Logout Confirmation */}
+      <ConfirmDialog
+        isOpen={isLogoutConfirmOpen}
+        onClose={() => setIsLogoutConfirmOpen(false)}
+        onConfirm={handleLogout}
+        title={t('common.logoutConfirm')}
+        message={t('common.logoutMessage')}
+        confirmText={t('common.logout')}
+        confirmVariant="danger"
+      />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="bg-white rounded-lg shadow">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-              <Button onClick={openCreateModal}>Create User</Button>
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('dashboard.userManagement')}</h2>
+                <Button onClick={openCreateModal} className="w-full sm:w-auto">Create User</Button>
+              </div>
             </div>
 
-            {/* Users Table */}
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -275,22 +315,22 @@ export const AdminUsers: React.FC = () => {
                           {user.enabled ? 'Active' : 'Disabled'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                         <button
                           onClick={() => openEditModal(user)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-blue-600 hover:text-blue-900 transition-colors"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => handleRegenerateCode(user.id)}
-                          className="text-yellow-600 hover:text-yellow-900"
+                          className="text-yellow-600 hover:text-yellow-900 transition-colors"
                         >
                           Regenerate
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-900 transition-colors"
                         >
                           Delete
                         </button>
@@ -299,6 +339,73 @@ export const AdminUsers: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-gray-200">
+              {users.map((user) => (
+                <div key={user.id} className="p-4 hover:bg-gray-50">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900">{user.name}</div>
+                      <div className="text-xs text-gray-500 mt-1">ID: {user.id}</div>
+                    </div>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded ${
+                      user.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {user.enabled ? 'Active' : 'Disabled'}
+                    </span>
+                  </div>
+                  <div className="space-y-1 text-sm text-gray-600 mb-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Role:</span>
+                      <span className={`px-2 py-0.5 text-xs font-semibold rounded ${
+                        user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {user.role}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Pressing:</span>
+                      <span className="font-medium">{user.pressingName}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500">Login Code:</span>
+                      <div className="flex items-center gap-2">
+                        <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">{user.loginCode}</code>
+                        <button
+                          onClick={() => handleCopyCode(user.loginCode)}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 text-sm">
+                    <button
+                      onClick={() => openEditModal(user)}
+                      className="text-blue-600 hover:text-blue-900 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleRegenerateCode(user.id)}
+                      className="text-yellow-600 hover:text-yellow-900 transition-colors"
+                    >
+                      Regenerate
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="text-red-600 hover:text-red-900 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {users.length === 0 && (
@@ -338,11 +445,12 @@ export const AdminUsers: React.FC = () => {
           <Select
             {...register('pressingId')}
             label="Pressing"
-            options={[
-              { value: '1', label: 'Main Pressing' },
-              { value: '2', label: 'Branch Pressing' },
-            ]}
+            options={pressings.map(p => ({
+              value: p.id.toString(),
+              label: p.name
+            }))}
             error={errors.pressingId?.message}
+            disabled={isLoadingPressings}
           />
 
           <div className="flex items-center">
@@ -403,11 +511,12 @@ export const AdminUsers: React.FC = () => {
           <Select
             {...register('pressingId')}
             label="Pressing"
-            options={[
-              { value: '1', label: 'Main Pressing' },
-              { value: '2', label: 'Branch Pressing' },
-            ]}
+            options={pressings.map(p => ({
+              value: p.id.toString(),
+              label: p.name
+            }))}
             error={errors.pressingId?.message}
+            disabled={isLoadingPressings}
           />
 
           <div className="flex items-center">

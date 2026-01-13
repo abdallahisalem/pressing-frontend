@@ -16,7 +16,11 @@
     "actions": "Actions",
     "confirm": "Confirm",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "changeLanguage": "Change Language?",
+    "changeLanguageMessage": "Are you sure you want to change the language? The interface will switch immediately.",
+    "logoutConfirm": "Logout Confirmation",
+    "logoutMessage": "Are you sure you want to logout?"
   },
   "auth": {
     "loginTitle": "Login to Pressing System",
@@ -94,6 +98,8 @@
     "addressPlaceholder": "Full address (optional)",
     "active": "Active",
     "inactive": "Inactive",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
     "status": "Status",
     "createdAt": "Created At",
     "searchPlaceholder": "Search by name or address...",
