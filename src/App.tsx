@@ -3,7 +3,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components';
-import { Login, Dashboard, AdminUsers, Clients, Orders, OrderCreate, OrderDetails } from './pages';
+import { Login, Dashboard, AdminUsers, Clients, Pressings, Orders, OrderCreate, OrderDetails } from './pages';
 
 function App() {
   return (
@@ -29,6 +29,16 @@ function App() {
             element={
               <ProtectedRoute requiredRole="ADMIN">
                 <AdminUsers />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Pressing Management Routes */}
+          <Route
+            path="/pressings"
+            element={
+              <ProtectedRoute>
+                <Pressings />
               </ProtectedRoute>
             }
           />

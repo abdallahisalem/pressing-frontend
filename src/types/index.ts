@@ -64,10 +64,26 @@ export interface AuthContextType extends AuthState {
   isLoading: boolean;
 }
 
-// Pressing (Business Location) Type
+// Pressing (Business Location) Types
 export interface Pressing {
   id: number;
   name: string;
+  address?: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePressingRequest {
+  name: string;
+  address?: string;
+  active?: boolean;
+}
+
+export interface UpdatePressingRequest {
+  name?: string;
+  address?: string;
+  active?: boolean;
 }
 
 // Order Management Types
