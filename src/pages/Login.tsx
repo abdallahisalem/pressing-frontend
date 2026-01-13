@@ -4,8 +4,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import { Button, Input } from '../components';
+import { Button, Input, LanguageSwitcher } from '../components';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
 
@@ -18,6 +19,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -47,12 +49,15 @@ export const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
+        <div className="flex justify-end mb-4">
+          <LanguageSwitcher />
+        </div>
         <div>
-          <h2 className="mt-6 text-center text-4xl font-extrabold text-gray-900">
-            Pressing Management
+          <h2 className="mt-6 text-center text-3xl sm:text-4xl font-extrabold text-gray-900">
+            {t('auth.loginTitle')}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your unique login code to continue
+            {t('auth.loginCodePlaceholder')}
           </p>
         </div>
 
@@ -61,8 +66,8 @@ export const Login: React.FC = () => {
             <Input
               {...register('loginCode')}
               type="text"
-              label="Login Code"
-              placeholder="e.g., ADMIN-2024-001"
+              label={t('auth.loginCode')}
+              placeholder={t('auth.loginCodePlaceholder')}
               error={errors.loginCode?.message}
               autoComplete="on"
               autoFocus
@@ -75,7 +80,7 @@ export const Login: React.FC = () => {
               className="w-full"
               isLoading={isLoading}
             >
-              Sign In
+              {isLoading ? t('auth.loggingIn') : t('auth.loginButton')}
             </Button>
           </div>
 

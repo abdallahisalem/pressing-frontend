@@ -69,3 +69,68 @@ export interface Pressing {
   id: number;
   name: string;
 }
+
+// Order Management Types
+export type OrderStatus = 'CREATED' | 'IN_PROGRESS' | 'READY' | 'DELIVERED';
+export type PaymentMethod = 'CASH' | 'WALLET';
+export type PaymentStatus = 'INITIATED' | 'PAID';
+
+// Client Types
+export interface Client {
+  id: number;
+  fullName: string;
+  phone?: string;
+  pressingId: number;
+  pressingName: string;
+  createdAt: string;
+}
+
+export interface CreateClientRequest {
+  fullName: string;
+  phone?: string;
+  pressingId: number;
+}
+
+// Order Item Types
+export interface OrderItem {
+  id: number;
+  label: string;
+  quantity: number;
+}
+
+export interface OrderItemInput {
+  label: string;
+  quantity: number;
+}
+
+// Payment Types
+export interface Payment {
+  id: number;
+  amount: number;
+  method: PaymentMethod;
+  status: PaymentStatus;
+  paidAt: string | null;
+  createdAt: string;
+}
+
+// Order Types
+export interface Order {
+  id: number;
+  referenceCode: string;
+  pressingId: number;
+  pressingName: string;
+  clientId: number;
+  clientName: string;
+  status: OrderStatus;
+  items: OrderItem[];
+  payment: Payment;
+  createdAt: string;
+}
+
+export interface CreateOrderRequest {
+  clientId: number;
+  pressingId: number;
+  items: OrderItemInput[];
+  paymentAmount: number;
+  paymentMethod: PaymentMethod;
+}

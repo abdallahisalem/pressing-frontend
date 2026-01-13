@@ -11,7 +11,7 @@ export const apiClient = axios.create({
   },
 });
 
-// Request interceptor - Add token to all requests except login
+// Request interceptor - Add token and language to all requests
 apiClient.interceptors.request.use(
   (config) => {
     // Don't add token to login endpoint
@@ -23,6 +23,11 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     }
+
+    // Add language header to all requests
+    const language = localStorage.getItem('language') || 'ar';
+    config.headers['Accept-Language'] = language;
+
     return config;
   },
   (error) => {

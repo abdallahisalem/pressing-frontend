@@ -3,7 +3,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components';
-import { Login, Dashboard, AdminUsers } from './pages';
+import { Login, Dashboard, AdminUsers, Clients, Orders, OrderCreate, OrderDetails } from './pages';
 
 function App() {
   return (
@@ -29,6 +29,44 @@ function App() {
             element={
               <ProtectedRoute requiredRole="ADMIN">
                 <AdminUsers />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Client Management Routes */}
+          <Route
+            path="/clients"
+            element={
+              <ProtectedRoute>
+                <Clients />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Order Management Routes */}
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/orders/new"
+            element={
+              <ProtectedRoute>
+                <OrderCreate />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/orders/:id"
+            element={
+              <ProtectedRoute>
+                <OrderDetails />
               </ProtectedRoute>
             }
           />

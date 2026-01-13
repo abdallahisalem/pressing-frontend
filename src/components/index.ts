@@ -3,3 +3,7 @@ export { Input } from './Input';
 export { Modal } from './Modal';
 export { Select } from './Select';
 export { ProtectedRoute } from './ProtectedRoute';
+export { StatusBadge } from './StatusBadge';
+export { SearchInput } from './SearchInput';
+export { ConfirmDialog } from './ConfirmDialog';
+export { LanguageSwitcher } from './LanguageSwitcher';
