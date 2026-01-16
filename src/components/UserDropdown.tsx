@@ -5,7 +5,7 @@ import { ConfirmDialog } from './ConfirmDialog';
 interface UserDropdownProps {
   userName: string;
   userRole: string;
-  pressingName?: string;
+  pressingName?: string | null;
   onLogout: () => void;
 }
 

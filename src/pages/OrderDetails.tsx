@@ -4,10 +4,22 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { ordersApi } from '../api/orders';
-import { Button, StatusBadge, ConfirmDialog, UserDropdown } from '../components';
+import { Button, StatusBadge, ConfirmDialog, UserDropdown, StatusTimeline } from '../components';
 import type { Order, OrderStatus } from '../types';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
+
+// All 8 order statuses in workflow order
+const ALL_STATUSES: OrderStatus[] = [
+  'CREATED',
+  'COLLECTED',
+  'RECEIVED_AT_PLANT',
+  'PROCESSING',
+  'PROCESSED',
+  'DISPATCHED',
+  'READY',
+  'DELIVERED',
+];
 
 export const OrderDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -41,13 +53,42 @@ export const OrderDetails: React.FC = () => {
   };
 
   const getNextStatus = (currentStatus: OrderStatus): OrderStatus | null => {
-    const statusFlow: Record<OrderStatus, OrderStatus | null> = {
-      CREATED: 'IN_PROGRESS',
-      IN_PROGRESS: 'READY',
-      READY: null, // Must confirm payment
-      DELIVERED: null, // Final status
-    };
-    return statusFlow[currentStatus];
+    if (!user) return null;
+
+    // Role-based status transitions - only allows moving to the NEXT status
+    if (user.role === 'ADMIN') {
+      const idx = ALL_STATUSES.indexOf(currentStatus);
+      if (currentStatus === 'READY' && order?.payment?.status === 'INITIATED') {
+        return null; // Must confirm payment first
+      }
+      return idx < ALL_STATUSES.length - 1 ? ALL_STATUSES[idx + 1] : null;
+    }
+
+    if (user.role === 'SUPERVISOR') {
+      // SUPERVISOR transitions at pressing:
+      // CREATED → COLLECTED (hand off to driver)
+      // DISPATCHED → READY (received back from plant)
+      // READY → DELIVERED (given to client, only after payment confirmed)
+      if (currentStatus === 'CREATED') return 'COLLECTED';
+      if (currentStatus === 'DISPATCHED') return 'READY';
+      if (currentStatus === 'READY' && order?.payment?.status === 'PAID') return 'DELIVERED';
+      return null;
+    }
+
+    if (user.role === 'PLANT_OPERATOR') {
+      // PLANT_OPERATOR transitions at plant:
+      // COLLECTED → RECEIVED_AT_PLANT (accept at plant)
+      // RECEIVED_AT_PLANT → PROCESSING (start processing)
+      // PROCESSING → PROCESSED (complete processing)
+      // PROCESSED → DISPATCHED (send back to pressing)
+      if (currentStatus === 'COLLECTED') return 'RECEIVED_AT_PLANT';
+      if (currentStatus === 'RECEIVED_AT_PLANT') return 'PROCESSING';
+      if (currentStatus === 'PROCESSING') return 'PROCESSED';
+      if (currentStatus === 'PROCESSED') return 'DISPATCHED';
+      return null;
+    }
+
+    return null;
   };
 
   const handleUpdateStatus = async (newStatus: OrderStatus) => {
@@ -100,6 +141,10 @@ export const OrderDetails: React.FC = () => {
     navigate('/login');
   };
 
+  const getStatusIndex = (status: OrderStatus): number => {
+    return ALL_STATUSES.indexOf(status);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -116,7 +161,11 @@ export const OrderDetails: React.FC = () => {
   }
 
   const nextStatus = getNextStatus(order.status);
-  const canConfirmPayment = order.status === 'READY' && order.payment.status === 'INITIATED';
+  // PLANT_OPERATOR cannot confirm payment
+  const canConfirmPayment = user?.role !== 'PLANT_OPERATOR' &&
+    order.status === 'READY' &&
+    order.payment?.status === 'INITIATED';
+  const currentStatusIndex = getStatusIndex(order.status);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -200,6 +249,12 @@ export const OrderDetails: React.FC = () => {
                   <p className="text-sm text-gray-600">{t('orderDetails.pressing')}</p>
                   <p className="text-gray-900">{order.pressingName}</p>
                 </div>
+                {order.plantName && (
+                  <div>
+                    <p className="text-sm text-gray-600">{t('orderDetails.plant')}</p>
+                    <p className="text-gray-900">{order.plantName}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-gray-600">{t('orderDetails.orderCreated')}</p>
                   <p className="text-gray-900">{new Date(order.createdAt).toLocaleString()}</p>
@@ -207,30 +262,32 @@ export const OrderDetails: React.FC = () => {
               </div>
             </div>
 
-            {/* Payment Information */}
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">{t('orderDetails.paymentInformation')}</h3>
-              <div className="space-y-2">
-                <div>
-                  <p className="text-sm text-gray-600">{t('orderDetails.paymentAmount')}</p>
-                  <p className="text-gray-900 font-medium text-xl">${order.payment.amount.toFixed(2)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">{t('orderDetails.paymentMethod')}</p>
-                  <p className="text-gray-900">{order.payment.method === 'CASH' ? t('orderCreate.cash') : t('orderCreate.wallet')}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">{t('orderDetails.paymentStatus')}</p>
-                  <StatusBadge status={order.payment.status} type="payment" />
-                </div>
-                {order.payment.paidAt && (
+            {/* Payment Information - Hidden for PLANT_OPERATOR */}
+            {user?.role !== 'PLANT_OPERATOR' && order.payment && (
+              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">{t('orderDetails.paymentInformation')}</h3>
+                <div className="space-y-2">
                   <div>
-                    <p className="text-sm text-gray-600">{t('orderDetails.paidAt')}</p>
-                    <p className="text-gray-900">{new Date(order.payment.paidAt).toLocaleString()}</p>
+                    <p className="text-sm text-gray-600">{t('orderDetails.paymentAmount')}</p>
+                    <p className="text-gray-900 font-medium text-xl">${order.payment.amount.toFixed(2)}</p>
                   </div>
-                )}
+                  <div>
+                    <p className="text-sm text-gray-600">{t('orderDetails.paymentMethod')}</p>
+                    <p className="text-gray-900">{order.payment.method === 'CASH' ? t('orderCreate.cash') : t('orderCreate.wallet')}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{t('orderDetails.paymentStatus')}</p>
+                    <StatusBadge status={order.payment.status} type="payment" />
+                  </div>
+                  {order.payment.paidAt && (
+                    <div>
+                      <p className="text-sm text-gray-600">{t('orderDetails.paidAt')}</p>
+                      <p className="text-gray-900">{new Date(order.payment.paidAt).toLocaleString()}</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Order Items */}
@@ -257,7 +314,7 @@ export const OrderDetails: React.FC = () => {
                         {item.label}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ×{item.quantity}
+                        x{item.quantity}
                       </td>
                     </tr>
                   ))}
@@ -270,7 +327,7 @@ export const OrderDetails: React.FC = () => {
               {order.items.map((item) => (
                 <div key={item.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium text-gray-900">{item.label}</span>
-                  <span className="text-sm text-gray-600">×{item.quantity}</span>
+                  <span className="text-sm text-gray-600">x{item.quantity}</span>
                 </div>
               ))}
             </div>
@@ -282,30 +339,45 @@ export const OrderDetails: React.FC = () => {
             </div>
           </div>
 
+          {/* Status History Timeline */}
+          {order.statusHistory && order.statusHistory.length > 0 && (
+            <div className="bg-white rounded-lg shadow p-4 sm:p-6 mt-4 sm:mt-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+                {t('orderDetails.statusHistory')}
+              </h3>
+              <StatusTimeline history={order.statusHistory} />
+            </div>
+          )}
+
           {/* Status Management */}
           <div className="bg-white rounded-lg shadow p-4 sm:p-6 mt-4 sm:mt-6 no-print">
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">{t('orderDetails.statusManagement')}</h3>
 
-            {/* Status Timeline */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between">
-                {(['CREATED', 'IN_PROGRESS', 'READY', 'DELIVERED'] as const).map((status, index) => (
+            {/* Status Timeline - 8 stages */}
+            <div className="mb-6 overflow-x-auto">
+              <div className="flex items-center justify-between min-w-[600px] px-2">
+                {ALL_STATUSES.map((status, index) => (
                   <div key={status} className="flex items-center">
-                    <div
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-xs sm:text-base ${
-                        order.status === status
-                          ? 'bg-blue-600 text-white'
-                          : index < ['CREATED', 'IN_PROGRESS', 'READY', 'DELIVERED'].indexOf(order.status)
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-200 text-gray-600'
-                      }`}
-                    >
-                      {index < ['CREATED', 'IN_PROGRESS', 'READY', 'DELIVERED'].indexOf(order.status) ? '✓' : index + 1}
-                    </div>
-                    {index < 3 && (
+                    <div className="flex flex-col items-center">
                       <div
-                        className={`w-6 sm:w-16 h-1 mx-1 sm:mx-2 ${
-                          index < ['CREATED', 'IN_PROGRESS', 'READY', 'DELIVERED'].indexOf(order.status)
+                        className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs ${
+                          order.status === status
+                            ? 'bg-blue-600 text-white'
+                            : index < currentStatusIndex
+                            ? 'bg-green-600 text-white'
+                            : 'bg-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {index < currentStatusIndex ? '✓' : index + 1}
+                      </div>
+                      <span className="text-xs mt-1 text-center max-w-[60px] leading-tight">
+                        {t(`status.order.${status}`)}
+                      </span>
+                    </div>
+                    {index < ALL_STATUSES.length - 1 && (
+                      <div
+                        className={`w-8 h-1 mx-1 ${
+                          index < currentStatusIndex
                             ? 'bg-green-600'
                             : 'bg-gray-200'
                         }`}
@@ -314,14 +386,23 @@ export const OrderDetails: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between mt-2 text-xs">
-                <span className="hidden sm:inline">{t('status.order.CREATED')}</span>
-                <span className="sm:hidden">{t('orders.new')}</span>
-                <span className="hidden sm:inline">{t('status.order.IN_PROGRESS')}</span>
-                <span className="sm:hidden">{t('orders.progress')}</span>
-                <span>{t('status.order.READY')}</span>
-                <span className="hidden sm:inline">{t('status.order.DELIVERED')}</span>
-                <span className="sm:hidden">{t('orders.done')}</span>
+            </div>
+
+            {/* Workflow Location Indicator */}
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                <div className={`p-3 rounded ${['CREATED', 'COLLECTED', 'READY', 'DELIVERED'].includes(order.status) ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                  <p className="text-xs text-gray-500 uppercase">{t('orderDetails.atPressing')}</p>
+                  <p className="font-medium">{order.pressingName}</p>
+                </div>
+                <div className={`p-3 rounded ${['COLLECTED', 'DISPATCHED'].includes(order.status) ? 'bg-purple-100' : 'bg-gray-100'}`}>
+                  <p className="text-xs text-gray-500 uppercase">{t('orderDetails.inTransit')}</p>
+                  <p className="font-medium">{['COLLECTED', 'DISPATCHED'].includes(order.status) ? t('orderDetails.onTheWay') : '-'}</p>
+                </div>
+                <div className={`p-3 rounded ${['RECEIVED_AT_PLANT', 'PROCESSING', 'PROCESSED'].includes(order.status) ? 'bg-orange-100' : 'bg-gray-100'}`}>
+                  <p className="text-xs text-gray-500 uppercase">{t('orderDetails.atPlant')}</p>
+                  <p className="font-medium">{order.plantName || '-'}</p>
+                </div>
               </div>
             </div>
 

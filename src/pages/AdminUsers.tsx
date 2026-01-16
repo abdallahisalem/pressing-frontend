@@ -8,18 +8,33 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { usersApi } from '../api/users';
 import { pressingsApi } from '../api/pressings';
+import { plantsApi } from '../api/plants';
 import { Button, Input, Select, Modal, ConfirmDialog, UserDropdown } from '../components';
-import type { User, CreateUserRequest, UpdateUserRequest, UserRole, Pressing } from '../types';
+import type { User, CreateUserRequest, UpdateUserRequest, UserRole, Pressing, Plant } from '../types';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
 
 const userSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  role: z.enum(['ADMIN', 'SUPERVISOR'], {
+  role: z.enum(['ADMIN', 'SUPERVISOR', 'PLANT_OPERATOR'], {
     message: 'Role is required',
   }),
-  pressingId: z.string().min(1, 'Pressing is required'),
+  pressingId: z.string().optional(),
+  plantId: z.string().optional(),
   enabled: z.boolean(),
+}).refine((data) => {
+  // Pressing is required for SUPERVISOR
+  if (data.role === 'SUPERVISOR' && !data.pressingId) {
+    return false;
+  }
+  // Plant is required for PLANT_OPERATOR
+  if (data.role === 'PLANT_OPERATOR' && !data.plantId) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Please select the required assignment',
+  path: ['pressingId'],
 });
 
 type UserFormData = z.infer<typeof userSchema>;
@@ -30,8 +45,10 @@ export const AdminUsers: React.FC = () => {
   const { t } = useTranslation();
   const [users, setUsers] = useState<User[]>([]);
   const [pressings, setPressings] = useState<Pressing[]>([]);
+  const [plants, setPlants] = useState<Plant[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPressings, setIsLoadingPressings] = useState(false);
+  const [isLoadingPlants, setIsLoadingPlants] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -43,6 +60,7 @@ export const AdminUsers: React.FC = () => {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -50,6 +68,8 @@ export const AdminUsers: React.FC = () => {
       enabled: true,
     },
   });
+
+  const watchedRole = watch('role');
 
   const loadUsers = async () => {
     try {
@@ -76,9 +96,23 @@ export const AdminUsers: React.FC = () => {
     }
   };
 
+  const loadPlants = async () => {
+    setIsLoadingPlants(true);
+    try {
+      const data = await plantsApi.getAllPlants(true); // Load only active plants
+      setPlants(data);
+    } catch (error) {
+      const axiosError = error as AxiosError<ApiError>;
+      toast.error(axiosError.response?.data?.message || 'Failed to load plants');
+    } finally {
+      setIsLoadingPlants(false);
+    }
+  };
+
   useEffect(() => {
     loadUsers();
     loadPressings();
+    loadPlants();
   }, []);
 
   const handleCreateUser = async (data: UserFormData) => {
@@ -87,7 +121,8 @@ export const AdminUsers: React.FC = () => {
       const userData: CreateUserRequest = {
         name: data.name,
         role: data.role as UserRole,
-        pressingId: parseInt(data.pressingId),
+        pressingId: data.pressingId ? parseInt(data.pressingId) : undefined,
+        plantId: data.plantId ? parseInt(data.plantId) : undefined,
         enabled: data.enabled,
       };
       const newUser = await usersApi.createUser(userData);
@@ -111,7 +146,8 @@ export const AdminUsers: React.FC = () => {
       const userData: UpdateUserRequest = {
         name: data.name,
         role: data.role as UserRole,
-        pressingId: parseInt(data.pressingId),
+        pressingId: data.pressingId ? parseInt(data.pressingId) : undefined,
+        plantId: data.plantId ? parseInt(data.plantId) : undefined,
         enabled: data.enabled,
       };
       const updatedUser = await usersApi.updateUser(selectedUser.id, userData);
@@ -164,17 +200,19 @@ export const AdminUsers: React.FC = () => {
       name: '',
       role: undefined,
       pressingId: '',
+      plantId: '',
       enabled: true,
     });
     setIsCreateModalOpen(true);
   };
 
-  const openEditModal = (user: User) => {
-    setSelectedUser(user);
-    setValue('name', user.name);
-    setValue('role', user.role);
-    setValue('pressingId', user.pressingId.toString());
-    setValue('enabled', user.enabled);
+  const openEditModal = (userToEdit: User) => {
+    setSelectedUser(userToEdit);
+    setValue('name', userToEdit.name);
+    setValue('role', userToEdit.role);
+    setValue('pressingId', userToEdit.pressingId?.toString() || '');
+    setValue('plantId', userToEdit.plantId?.toString() || '');
+    setValue('enabled', userToEdit.enabled);
     setIsEditModalOpen(true);
   };
 
@@ -207,9 +245,10 @@ export const AdminUsers: React.FC = () => {
               <img src="/vite.svg" alt="Logo" className="h-10 w-10" />
               <div className="text-left">
                 <h1 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">
-                  Pressing Management System
+                  <span className="hidden sm:inline">{t('dashboard.title')}</span>
+                  <span className="sm:hidden">{t('users.title')}</span>
                 </h1>
-                <p className="text-xs text-gray-500">User Management</p>
+                <p className="text-xs text-gray-500 hidden sm:block">{t('users.title')}</p>
               </div>
             </button>
             <div className="flex items-center gap-3">
@@ -243,7 +282,7 @@ export const AdminUsers: React.FC = () => {
             <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t('dashboard.userManagement')}</h2>
-                <Button onClick={openCreateModal} className="w-full sm:w-auto">Create User</Button>
+                <Button onClick={openCreateModal} className="w-full sm:w-auto">{t('users.createUser')}</Button>
               </div>
             </div>
 
@@ -252,26 +291,26 @@ export const AdminUsers: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ID
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('users.id')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('users.name')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Login Code
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('users.loginCode')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Role
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('users.role')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Pressing
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('users.pressing')} / {t('users.plant')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('users.status')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                    <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('common.actions')}
                     </th>
                   </tr>
                 </thead>
@@ -285,12 +324,12 @@ export const AdminUsers: React.FC = () => {
                         {user.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center gap-2">
                           <code className="bg-gray-100 px-2 py-1 rounded">{user.loginCode}</code>
                           <button
                             onClick={() => handleCopyCode(user.loginCode)}
                             className="text-blue-600 hover:text-blue-800"
-                            title="Copy code"
+                            title={t('users.copyCode')}
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -300,40 +339,46 @@ export const AdminUsers: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-semibold rounded ${
-                          user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                          user.role === 'ADMIN'
+                            ? 'bg-purple-100 text-purple-800'
+                            : user.role === 'PLANT_OPERATOR'
+                              ? 'bg-orange-100 text-orange-800'
+                              : 'bg-blue-100 text-blue-800'
                         }`}>
-                          {user.role}
+                          {user.role === 'PLANT_OPERATOR' ? t('users.plantOperator') : user.role}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {user.pressingName}
+                        {user.role === 'PLANT_OPERATOR' ? user.plantName : user.pressingName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 text-xs font-semibold rounded ${
                           user.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         }`}>
-                          {user.enabled ? 'Active' : 'Disabled'}
+                          {user.enabled ? t('users.active') : t('users.disabled')}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                        <button
-                          onClick={() => openEditModal(user)}
-                          className="text-blue-600 hover:text-blue-900 transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleRegenerateCode(user.id)}
-                          className="text-yellow-600 hover:text-yellow-900 transition-colors"
-                        >
-                          Regenerate
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="text-red-600 hover:text-red-900 transition-colors"
-                        >
-                          Delete
-                        </button>
+                      <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                        <div className="flex gap-3 justify-end">
+                          <button
+                            onClick={() => openEditModal(user)}
+                            className="text-blue-600 hover:text-blue-900 transition-colors"
+                          >
+                            {t('common.edit')}
+                          </button>
+                          <button
+                            onClick={() => handleRegenerateCode(user.id)}
+                            className="text-yellow-600 hover:text-yellow-900 transition-colors"
+                          >
+                            {t('users.regenerate')}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(user.id)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                          >
+                            {t('common.delete')}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -353,24 +398,32 @@ export const AdminUsers: React.FC = () => {
                     <span className={`px-2 py-1 text-xs font-semibold rounded ${
                       user.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
-                      {user.enabled ? 'Active' : 'Disabled'}
+                      {user.enabled ? t('users.active') : t('users.disabled')}
                     </span>
                   </div>
                   <div className="space-y-1 text-sm text-gray-600 mb-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Role:</span>
+                      <span className="text-gray-500">{t('users.role')}:</span>
                       <span className={`px-2 py-0.5 text-xs font-semibold rounded ${
-                        user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                        user.role === 'ADMIN'
+                          ? 'bg-purple-100 text-purple-800'
+                          : user.role === 'PLANT_OPERATOR'
+                            ? 'bg-orange-100 text-orange-800'
+                            : 'bg-blue-100 text-blue-800'
                       }`}>
-                        {user.role}
+                        {user.role === 'PLANT_OPERATOR' ? t('users.plantOperator') : user.role}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Pressing:</span>
-                      <span className="font-medium">{user.pressingName}</span>
+                      <span className="text-gray-500">
+                        {user.role === 'PLANT_OPERATOR' ? t('users.plant') : t('users.pressing')}:
+                      </span>
+                      <span className="font-medium">
+                        {user.role === 'PLANT_OPERATOR' ? user.plantName : user.pressingName}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-500">Login Code:</span>
+                      <span className="text-gray-500">{t('users.loginCode')}:</span>
                       <div className="flex items-center gap-2">
                         <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">{user.loginCode}</code>
                         <button
@@ -389,19 +442,19 @@ export const AdminUsers: React.FC = () => {
                       onClick={() => openEditModal(user)}
                       className="text-blue-600 hover:text-blue-900 transition-colors"
                     >
-                      Edit
+                      {t('common.edit')}
                     </button>
                     <button
                       onClick={() => handleRegenerateCode(user.id)}
                       className="text-yellow-600 hover:text-yellow-900 transition-colors"
                     >
-                      Regenerate
+                      {t('users.regenerate')}
                     </button>
                     <button
                       onClick={() => handleDeleteUser(user.id)}
                       className="text-red-600 hover:text-red-900 transition-colors"
                     >
-                      Delete
+                      {t('common.delete')}
                     </button>
                   </div>
                 </div>
@@ -410,7 +463,7 @@ export const AdminUsers: React.FC = () => {
 
             {users.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-500">No users found. Create your first user!</p>
+                <p className="text-gray-500">{t('users.noUsers')}</p>
               </div>
             )}
           </div>
@@ -421,37 +474,53 @@ export const AdminUsers: React.FC = () => {
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        title="Create New User"
+        title={t('users.createUser')}
         size="md"
       >
         <form onSubmit={handleSubmit(handleCreateUser)} className="space-y-4">
           <Input
             {...register('name')}
-            label="Name"
+            label={t('users.name')}
             placeholder="John Doe"
             error={errors.name?.message}
           />
 
           <Select
             {...register('role')}
-            label="Role"
+            label={t('users.role')}
             options={[
-              { value: 'ADMIN', label: 'Admin' },
-              { value: 'SUPERVISOR', label: 'Supervisor' },
+              { value: 'ADMIN', label: t('users.admin') },
+              { value: 'SUPERVISOR', label: t('users.supervisor') },
+              { value: 'PLANT_OPERATOR', label: t('users.plantOperator') },
             ]}
             error={errors.role?.message}
           />
 
-          <Select
-            {...register('pressingId')}
-            label="Pressing"
-            options={pressings.map(p => ({
-              value: p.id.toString(),
-              label: p.name
-            }))}
-            error={errors.pressingId?.message}
-            disabled={isLoadingPressings}
-          />
+          {watchedRole === 'SUPERVISOR' && (
+            <Select
+              {...register('pressingId')}
+              label={t('users.pressing')}
+              options={pressings.map(p => ({
+                value: p.id.toString(),
+                label: p.name
+              }))}
+              error={errors.pressingId?.message}
+              disabled={isLoadingPressings}
+            />
+          )}
+
+          {watchedRole === 'PLANT_OPERATOR' && (
+            <Select
+              {...register('plantId')}
+              label={t('users.plant')}
+              options={plants.map(p => ({
+                value: p.id.toString(),
+                label: p.name
+              }))}
+              error={errors.plantId?.message}
+              disabled={isLoadingPlants}
+            />
+          )}
 
           <div className="flex items-center">
             <input
@@ -461,7 +530,7 @@ export const AdminUsers: React.FC = () => {
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label htmlFor="enabled" className="ml-2 block text-sm text-gray-900">
-              Account Enabled
+              {t('users.active')}
             </label>
           </div>
 
@@ -471,10 +540,10 @@ export const AdminUsers: React.FC = () => {
               variant="secondary"
               onClick={() => setIsCreateModalOpen(false)}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" isLoading={isSubmitting}>
-              Create User
+              {t('common.create')}
             </Button>
           </div>
         </form>
@@ -487,37 +556,53 @@ export const AdminUsers: React.FC = () => {
           setIsEditModalOpen(false);
           setSelectedUser(null);
         }}
-        title="Edit User"
+        title={t('users.editUser')}
         size="md"
       >
         <form onSubmit={handleSubmit(handleEditUser)} className="space-y-4">
           <Input
             {...register('name')}
-            label="Name"
+            label={t('users.name')}
             placeholder="John Doe"
             error={errors.name?.message}
           />
 
           <Select
             {...register('role')}
-            label="Role"
+            label={t('users.role')}
             options={[
-              { value: 'ADMIN', label: 'Admin' },
-              { value: 'SUPERVISOR', label: 'Supervisor' },
+              { value: 'ADMIN', label: t('users.admin') },
+              { value: 'SUPERVISOR', label: t('users.supervisor') },
+              { value: 'PLANT_OPERATOR', label: t('users.plantOperator') },
             ]}
             error={errors.role?.message}
           />
 
-          <Select
-            {...register('pressingId')}
-            label="Pressing"
-            options={pressings.map(p => ({
-              value: p.id.toString(),
-              label: p.name
-            }))}
-            error={errors.pressingId?.message}
-            disabled={isLoadingPressings}
-          />
+          {watchedRole === 'SUPERVISOR' && (
+            <Select
+              {...register('pressingId')}
+              label={t('users.pressing')}
+              options={pressings.map(p => ({
+                value: p.id.toString(),
+                label: p.name
+              }))}
+              error={errors.pressingId?.message}
+              disabled={isLoadingPressings}
+            />
+          )}
+
+          {watchedRole === 'PLANT_OPERATOR' && (
+            <Select
+              {...register('plantId')}
+              label={t('users.plant')}
+              options={plants.map(p => ({
+                value: p.id.toString(),
+                label: p.name
+              }))}
+              error={errors.plantId?.message}
+              disabled={isLoadingPlants}
+            />
+          )}
 
           <div className="flex items-center">
             <input
@@ -527,7 +612,7 @@ export const AdminUsers: React.FC = () => {
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label htmlFor="enabled-edit" className="ml-2 block text-sm text-gray-900">
-              Account Enabled
+              {t('users.active')}
             </label>
           </div>
 
@@ -540,10 +625,10 @@ export const AdminUsers: React.FC = () => {
                 setSelectedUser(null);
               }}
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" isLoading={isSubmitting}>
-              Update User
+              {t('common.save')}
             </Button>
           </div>
         </form>

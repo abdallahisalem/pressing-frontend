@@ -1,6 +1,7 @@
 export { Login } from './Login';
 export { Dashboard } from './Dashboard';
 export { AdminUsers } from './AdminUsers';
+export { AdminPlants } from './AdminPlants';
 export { Clients } from './Clients';
 export { Pressings } from './Pressings';
 export { Orders } from './Orders';

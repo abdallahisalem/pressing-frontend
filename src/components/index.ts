@@ -8,3 +8,4 @@ export { SearchInput } from './SearchInput';
 export { ConfirmDialog } from './ConfirmDialog';
 export { LanguageSwitcher } from './LanguageSwitcher';
 export { UserDropdown } from './UserDropdown';
+export { StatusTimeline } from './StatusTimeline';

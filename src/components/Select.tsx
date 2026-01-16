@@ -14,7 +14,7 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 export const Select: React.FC<SelectProps> = ({
   label,
   error,
-  options,
+  options = [],
   className = '',
   ...props
 }) => {
@@ -32,7 +32,7 @@ export const Select: React.FC<SelectProps> = ({
         {...props}
       >
         <option value="">Select...</option>
-        {options.map((option) => (
+        {(options || []).map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>

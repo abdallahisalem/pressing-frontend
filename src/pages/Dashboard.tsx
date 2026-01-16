@@ -135,6 +135,37 @@ export const Dashboard: React.FC = () => {
                     </div>
 
                     <div
+                      onClick={() => navigate('/admin/plants')}
+                      className="p-4 sm:p-6 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md active:bg-gray-50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        <div className="flex-shrink-0">
+                          <svg
+                            className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="text-base sm:text-lg font-semibold text-gray-900">
+                            {t('dashboard.plantManagement')}
+                          </h4>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            {t('dashboard.plantManagementDesc')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
                       onClick={() => navigate('/clients')}
                       className="p-4 sm:p-6 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md active:bg-gray-50 transition-all cursor-pointer"
                     >
@@ -327,6 +358,49 @@ export const Dashboard: React.FC = () => {
                           </h4>
                           <p className="text-xs sm:text-sm text-gray-600">
                             {t('dashboard.clientManagementDescSupervisor')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Plant Operator Section */}
+            {user?.role === 'PLANT_OPERATOR' && (
+              <div className="space-y-4">
+                <div className="border-t pt-4">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+                    {t('dashboard.plantOperatorFunctions')}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div
+                      onClick={() => navigate('/orders')}
+                      className="p-4 sm:p-6 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md active:bg-gray-50 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        <div className="flex-shrink-0">
+                          <svg
+                            className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="text-base sm:text-lg font-semibold text-gray-900">
+                            {t('dashboard.orderManagement')}
+                          </h4>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            {t('dashboard.orderManagementDescPlantOperator')}
                           </p>
                         </div>
                       </div>

@@ -8,11 +8,16 @@ interface StatusBadgeProps {
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, type = 'order' }) => {
   const getStatusStyles = () => {
     if (type === 'order') {
-      const orderStyles = {
-        CREATED: 'bg-gray-100 text-gray-800',
-        IN_PROGRESS: 'bg-blue-100 text-blue-800',
-        READY: 'bg-yellow-100 text-yellow-800',
-        DELIVERED: 'bg-green-100 text-green-800',
+      // 8-stage workflow colors
+      const orderStyles: Record<OrderStatus, string> = {
+        CREATED: 'bg-blue-100 text-blue-800',           // New order
+        COLLECTED: 'bg-purple-100 text-purple-800',     // In transit to plant
+        RECEIVED_AT_PLANT: 'bg-orange-100 text-orange-800', // Arrived at plant
+        PROCESSING: 'bg-yellow-100 text-yellow-800',    // Being processed
+        PROCESSED: 'bg-lime-100 text-lime-800',         // Processing complete
+        DISPATCHED: 'bg-purple-100 text-purple-800',    // In transit to pressing
+        READY: 'bg-green-100 text-green-800',           // Ready for pickup
+        DELIVERED: 'bg-gray-100 text-gray-800',         // Completed
       };
       return orderStyles[status as OrderStatus] || 'bg-gray-100 text-gray-800';
     } else {
@@ -25,7 +30,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, type = 'order'
   };
 
   const getStatusLabel = () => {
-    return status.replace('_', ' ');
+    return status.replace(/_/g, ' ');
   };
 
   return (

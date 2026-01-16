@@ -1,5 +1,5 @@
 // User Roles
-export type UserRole = 'ADMIN' | 'SUPERVISOR';
+export type UserRole = 'ADMIN' | 'SUPERVISOR' | 'PLANT_OPERATOR';
 
 // API Response Types
 export interface LoginResponse {
@@ -9,8 +9,10 @@ export interface LoginResponse {
   userId: number;
   userName: string;
   role: UserRole;
-  pressingId: number;
-  pressingName: string;
+  pressingId: number | null;
+  pressingName: string | null;
+  plantId: number | null;
+  plantName: string | null;
 }
 
 export interface User {
@@ -18,8 +20,10 @@ export interface User {
   name: string;
   loginCode: string;
   role: UserRole;
-  pressingId: number;
-  pressingName: string;
+  pressingId: number | null;
+  pressingName: string | null;
+  plantId: number | null;
+  plantName: string | null;
   enabled: boolean;
   lastCodeRegeneratedAt: string;
   createdAt: string;
@@ -28,14 +32,16 @@ export interface User {
 export interface CreateUserRequest {
   name: string;
   role: UserRole;
-  pressingId: number;
+  pressingId?: number | null;
+  plantId?: number | null;
   enabled: boolean;
 }
 
 export interface UpdateUserRequest {
   name: string;
   role: UserRole;
-  pressingId: number;
+  pressingId?: number | null;
+  plantId?: number | null;
   enabled: boolean;
 }
 
@@ -57,8 +63,10 @@ export interface AuthState {
     id: number;
     name: string;
     role: UserRole;
-    pressingId: number;
-    pressingName: string;
+    pressingId: number | null;
+    pressingName: string | null;
+    plantId: number | null;
+    plantName: string | null;
   } | null;
 }
 
@@ -90,8 +98,16 @@ export interface UpdatePressingRequest {
   active?: boolean;
 }
 
-// Order Management Types
-export type OrderStatus = 'CREATED' | 'IN_PROGRESS' | 'READY' | 'DELIVERED';
+// Order Management Types - 8-stage workflow
+export type OrderStatus =
+  | 'CREATED'           // Order created at pressing
+  | 'COLLECTED'         // Picked up from pressing by driver
+  | 'RECEIVED_AT_PLANT' // Arrived at plant facility
+  | 'PROCESSING'        // Being cleaned/processed at plant
+  | 'PROCESSED'         // Cleaning complete
+  | 'DISPATCHED'        // Sent back to pressing
+  | 'READY'             // Back at pressing, ready for client pickup
+  | 'DELIVERED';        // Given to client
 export type PaymentMethod = 'CASH' | 'WALLET';
 export type PaymentStatus = 'INITIATED' | 'PAID';
 
@@ -133,6 +149,14 @@ export interface Payment {
   createdAt: string;
 }
 
+// Status History Entry
+export interface StatusHistoryEntry {
+  id: number;
+  status: OrderStatus;
+  changedByUserName: string;
+  changedAt: string;
+}
+
 // Order Types
 export interface Order {
   id: number;
@@ -141,9 +165,12 @@ export interface Order {
   pressingName: string;
   clientId: number;
   clientName: string;
+  plantId: number | null;
+  plantName: string | null;
   status: OrderStatus;
   items: OrderItem[];
-  payment: Payment;
+  payment: Payment | null;
+  statusHistory?: StatusHistoryEntry[];
   createdAt: string;
 }
 
@@ -153,4 +180,33 @@ export interface CreateOrderRequest {
   items: OrderItemInput[];
   paymentAmount: number;
   paymentMethod: PaymentMethod;
+}
+
+// Plant (Laundry Processing Facility) Types
+export interface Plant {
+  id: number;
+  name: string;
+  address?: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePlantRequest {
+  name: string;
+  address?: string;
+  active?: boolean;
+}
+
+export interface UpdatePlantRequest {
+  name?: string;
+  address?: string;
+  active?: boolean;
+}
+
+// Bulk Order Status Update
+export interface BulkUpdateOrderStatusRequest {
+  orderIds: number[];
+  newStatus: OrderStatus;
+  plantId?: number; // Required when status is RECEIVED_AT_PLANT
 }

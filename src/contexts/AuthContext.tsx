@@ -12,8 +12,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     id: number;
     name: string;
     role: UserRole;
-    pressingId: number;
-    pressingName: string;
+    pressingId: number | null;
+    pressingName: string | null;
+    plantId: number | null;
+    plantName: string | null;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,10 +43,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Store user info with new fields
       const userData = {
         id: response.userId,
-        name: response.userName || 'User', // Fallback for backward compatibility
+        name: response.userName || 'User',
         role: response.role,
         pressingId: response.pressingId,
-        pressingName: response.pressingName || 'Pressing', // Fallback for backward compatibility
+        pressingName: response.pressingName,
+        plantId: response.plantId,
+        plantName: response.plantName,
       };
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
