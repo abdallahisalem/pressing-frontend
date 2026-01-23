@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Order, CreateOrderRequest, Payment, OrderStatus, BulkUpdateOrderStatusRequest } from '../types';
+import type { Order, CreateOrderRequest, Payment, OrderStatus, BulkUpdateOrderStatusRequest, RecordPaymentRequest } from '../types';
 
 export const ordersApi = {
   // Get orders by pressing ID
@@ -52,9 +52,15 @@ export const ordersApi = {
     return response.data;
   },
 
-  // Confirm payment
+  // Confirm payment (deprecated - use recordPayment for new workflow)
   confirmPayment: async (id: number): Promise<Payment> => {
     const response = await apiClient.post<Payment>(`/api/orders/${id}/confirm-payment`);
+    return response.data;
+  },
+
+  // Record payment (new workflow - after DELIVERED status)
+  recordPayment: async (request: RecordPaymentRequest): Promise<Payment> => {
+    const response = await apiClient.post<Payment>('/api/orders/record-payment', request);
     return response.data;
   },
 

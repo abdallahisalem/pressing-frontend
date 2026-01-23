@@ -7,3 +7,4 @@ export { Pressings } from './Pressings';
 export { Orders } from './Orders';
 export { OrderCreate } from './OrderCreate';
 export { OrderDetails } from './OrderDetails';
+export { PressingItems } from './PressingItems';

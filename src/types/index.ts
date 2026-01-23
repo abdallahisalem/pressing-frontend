@@ -98,6 +98,28 @@ export interface UpdatePressingRequest {
   active?: boolean;
 }
 
+// Pressing Item (Predefined catalog items)
+export interface PressingItem {
+  id: number;
+  pressingId: number;
+  pressingName: string;
+  label: string;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// NOTE: pressingId is automatically taken from JWT - don't send it!
+export interface CreatePressingItemRequest {
+  label: string;
+  price: number;
+}
+
+export interface UpdatePressingItemRequest {
+  label: string;
+  price: number;
+}
+
 // Order Management Types - 8-stage workflow
 export type OrderStatus =
   | 'CREATED'           // Order created at pressing
@@ -108,7 +130,7 @@ export type OrderStatus =
   | 'DISPATCHED'        // Sent back to pressing
   | 'READY'             // Back at pressing, ready for client pickup
   | 'DELIVERED';        // Given to client
-export type PaymentMethod = 'CASH' | 'WALLET';
+export type PaymentMethod = 'CASH' | 'BANKILY' | 'MASRIVI' | 'SEDAD' | 'AMANTY' | 'BIMBANK' | 'CLICK' | 'AUTRES';
 export type PaymentStatus = 'INITIATED' | 'PAID';
 
 // Client Types
@@ -132,11 +154,13 @@ export interface OrderItem {
   id: number;
   label: string;
   quantity: number;
+  price: number;
 }
 
 export interface OrderItemInput {
   label: string;
   quantity: number;
+  price: number;
 }
 
 // Payment Types
@@ -168,17 +192,22 @@ export interface Order {
   plantId: number | null;
   plantName: string | null;
   status: OrderStatus;
+  totalAmount: number;
   items: OrderItem[];
   payment: Payment | null;
   statusHistory?: StatusHistoryEntry[];
   createdAt: string;
 }
 
+// NOTE: pressingId is automatically taken from JWT - don't send it!
 export interface CreateOrderRequest {
   clientId: number;
-  pressingId: number;
   items: OrderItemInput[];
-  paymentAmount: number;
+}
+
+// Record Payment Request (for DELIVERED orders)
+export interface RecordPaymentRequest {
+  orderId: number;
   paymentMethod: PaymentMethod;
 }
 
