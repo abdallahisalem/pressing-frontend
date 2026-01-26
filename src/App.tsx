@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components';
 import { Login, Dashboard, AdminUsers, AdminPlants, Clients, Pressings, Orders, OrderCreate, OrderDetails, PressingItems } from './pages';
@@ -108,17 +107,19 @@ function App() {
         </Routes>
 
         {/* Toast Notification Container */}
-        <ToastContainer
+        <Toaster
           position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
+          expand={true}
+          richColors
+          closeButton
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: 'white',
+              color: '#1f2937',
+              border: '1px solid #e5e7eb',
+            },
+          }}
         />
       </AuthProvider>
     </BrowserRouter>
