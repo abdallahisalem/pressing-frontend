@@ -7,8 +7,6 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { Button, Input, LanguageSwitcher } from '../components';
-import type { AxiosError } from 'axios';
-import type { ApiError } from '../types';
 
 const loginSchema = z.object({
   loginCode: z.string().min(1, 'Login code is required'),
@@ -22,11 +20,7 @@ export const Login: React.FC = () => {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
@@ -34,12 +28,10 @@ export const Login: React.FC = () => {
     setIsLoading(true);
     try {
       await login(data.loginCode);
-      toast.success('Login successful!');
+      toast.success(t('auth.successMessage'));
       navigate('/dashboard');
-    } catch (error) {
-      const axiosError = error as AxiosError<ApiError>;
-      const message =
-        axiosError.response?.data?.message || 'Login failed. Please check your login code.';
+    } catch (error: any) {
+      const message = error.response?.data?.message || t('auth.errorDefault');
       toast.error(message);
     } finally {
       setIsLoading(false);
@@ -47,49 +39,57 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="flex justify-end mb-4">
-          <LanguageSwitcher />
-        </div>
-        <div>
-          <h2 className="mt-6 text-center text-3xl sm:text-4xl font-extrabold text-gray-900">
-            {t('auth.loginTitle')}
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {t('auth.loginCodePlaceholder')}
-          </p>
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-md">
+        {/* Top Header Section */}
+        <div className="flex flex-col items-center text-center space-y-4">
+
+                        <img src="/img/logo.png" alt="Logo" className="h-20 w-20" />
+
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+              {t('auth.loginTitle')}
+            </h1>
+            <p className="text-sm text-gray-500">
+              {t('auth.loginCodePlaceholder')}
+            </p>
+          </div>
         </div>
 
-        <form className="mt-8 space-y-6 bg-white p-8 rounded-lg shadow-md" onSubmit={handleSubmit(onSubmit)}>
-          <div>
+        {/* Form Section */}
+        <form 
+          className="mt-8 space-y-6" 
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <div className="space-y-1">
             <Input
               {...register('loginCode')}
-              type="text"
-              label={t('auth.loginCode')}
-              placeholder={t('auth.loginCodePlaceholder')}
+              // label={t('auth.loginCode')}
+              placeholder="••••••••"
               error={errors.loginCode?.message}
-              autoComplete="on"
+              className="block w-full rounded-xl border-gray-300 transition-focus focus:ring-2 focus:ring-black"
               autoFocus
             />
           </div>
 
-          <div>
-            <Button
-              type="submit"
-              className="w-full"
-              isLoading={isLoading}
-            >
-              {isLoading ? t('auth.loggingIn') : t('auth.loginButton')}
-            </Button>
-          </div>
+          <Button 
+            type="submit" 
+            className="w-full py-4 bg-black text-white rounded-xl font-medium transition-transform active:scale-[0.98] disabled:opacity-70"
+            isLoading={isLoading}
+          >
+            {t('auth.loginButton')}
+          </Button>
 
-          <div className="text-center">
-            <p className="text-xs text-gray-500">
-              Don't have a login code? Contact your administrator.
+          <div className="pt-2 border-t border-gray-50">
+            <p className="text-center text-xs leading-relaxed text-gray-400">
+              {t('auth.adminContact')}
             </p>
           </div>
         </form>
+        {/* Footer Link */}
+        <div dir="ltr" className="mt-8 flex justify-center">
+          <LanguageSwitcher />
+        </div>
       </div>
     </div>
   );

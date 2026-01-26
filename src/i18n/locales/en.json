@@ -27,7 +27,9 @@
     "loginCode": "Login Code",
     "loginCodePlaceholder": "Enter your login code",
     "loginButton": "Login",
-    "loggingIn": "Logging in..."
+    "loggingIn": "Logging in...",
+    "adminContact": "If you don't have a login code, please contact your system administrator.",
+    "successMessage": "Logged in successfully!"
   },
   "dashboard": {
     "title": "Pressing Management System",

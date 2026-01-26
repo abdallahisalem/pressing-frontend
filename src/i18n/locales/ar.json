@@ -27,7 +27,9 @@
     "loginCode": "رمز الدخول",
     "loginCodePlaceholder": "أدخل رمز الدخول الخاص بك",
     "loginButton": "تسجيل الدخول",
-    "loggingIn": "جاري تسجيل الدخول..."
+    "loggingIn": "جاري تسجيل الدخول...",
+    "adminContact": "إذا لم يكن لديك رمز دخول، يرجى الاتصال بمدير النظام.",
+    "successMessage": "تم تسجيل الدخول بنجاح!"
   },
   "dashboard": {
     "title": "نظام إدارة المغسلة",
