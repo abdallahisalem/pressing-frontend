@@ -257,7 +257,7 @@ export const Dashboard: React.FC = () => {
                         </div>
                       </div>
                     </div>
-
+{/* 
                     <div
                       onClick={() => navigate('/orders/new')}
                       className="p-6 border border-gray-200 rounded-lg hover:border-green-500 hover:shadow-md transition-all cursor-pointer"
@@ -287,7 +287,7 @@ export const Dashboard: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>

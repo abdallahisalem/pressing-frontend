@@ -199,7 +199,7 @@ export const OrderDetails: React.FC = () => {
               className="flex items-center gap-3 hover:opacity-80 transition-opacity"
             >
               <img src="/img/logo.png" alt="Logo" className="h-10 w-10" />
-              <div className="text-left">
+              <div className="text-start">
                 <h1 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">
                   <span className="hidden sm:inline">{t('dashboard.title')}</span>
                   <span className="sm:hidden">{t('orders.order')}</span>
