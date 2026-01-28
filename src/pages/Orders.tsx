@@ -1,14 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from '../utils';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../contexts/AuthContext';
-import { ordersApi } from '../api/orders';
-import { plantsApi } from '../api/plants';
-import { Button, SearchInput, StatusBadge, UserDropdown, ConfirmDialog, Modal, Select } from '../components';
-import type { Order, OrderStatus, Plant, BulkUpdateOrderStatusRequest } from '../types';
 import type { AxiosError } from 'axios';
-import type { ApiError } from '../types';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { ordersApi } from '../api/orders';
+import { Button, ConfirmDialog, Modal, SearchInput, StatusBadge, UserDropdown } from '../components';
+import { useAuth } from '../contexts/AuthContext';
+import type { ApiError, BulkUpdateOrderStatusRequest, Order, OrderStatus } from '../types';
+import { toast } from '../utils';
 
 // All 8 order statuses in workflow order
 const ALL_STATUSES: OrderStatus[] = [
@@ -78,13 +76,8 @@ export const Orders: React.FC = () => {
   const [bulkUpdateStatus, setBulkUpdateStatus] = useState<OrderStatus | ''>('');
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
-  // Plant selection for RECEIVED_AT_PLANT status
-  const [plants, setPlants] = useState<Plant[]>([]);
-  const [selectedPlantId, setSelectedPlantId] = useState<number | ''>('');
-
   useEffect(() => {
     loadOrders();
-    loadPlants();
   }, []);
 
   useEffect(() => {
@@ -96,29 +89,22 @@ export const Orders: React.FC = () => {
 
     try {
       let data: Order[];
+      data = await ordersApi.getAllOrders();
 
-      if (user.role === 'ADMIN') {
-        // Admin sees all orders
-        data = await ordersApi.getAllOrders();
-      } else if (user.role === 'PLANT_OPERATOR' && user.plantId) {
-        // Plant operator sees:
-        // 1. All COLLECTED orders (visible to ALL plant operators - incoming)
-        // 2. Orders at their plant (RECEIVED_AT_PLANT, PROCESSING, PROCESSED, DISPATCHED)
-        const [collectedOrders, plantOrders] = await Promise.all([
-          ordersApi.getCollectedOrders(),
-          ordersApi.getOrdersByPlant(user.plantId),
-        ]);
-        // Combine and deduplicate (in case of any overlap)
-        const orderMap = new Map<number, Order>();
-        collectedOrders.forEach((order) => orderMap.set(order.id, order));
-        plantOrders.forEach((order) => orderMap.set(order.id, order));
-        data = Array.from(orderMap.values());
-      } else if (user.pressingId) {
-        // Supervisor sees orders at their pressing
-        data = await ordersApi.getOrdersByPressing(user.pressingId);
-      } else {
-        data = [];
-      }
+      // if (user.role === 'PLANT_OPERATOR' && user.plantId) {
+      //   // Plant operator sees:
+      //   // 1. All COLLECTED orders (visible to ALL plant operators - incoming)
+      //   // 2. Orders at their plant (RECEIVED_AT_PLANT, PROCESSING, PROCESSED, DISPATCHED)
+      //   const [collectedOrders, plantOrders] = await Promise.all([
+      //     ordersApi.getCollectedOrders(),
+      //     ordersApi.getAllOrders(),
+      //   ]);
+      //   // Combine and deduplicate (in case of any overlap)
+      //   const orderMap = new Map<number, Order>();
+      //   collectedOrders.forEach((order) => orderMap.set(order.id, order));
+      //   plantOrders.forEach((order) => orderMap.set(order.id, order));
+      //   data = Array.from(orderMap.values());
+      // } 
 
       setOrders(data);
     } catch (error) {
@@ -126,15 +112,6 @@ export const Orders: React.FC = () => {
       toast.error(axiosError.response?.data?.message || 'Failed to load orders');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const loadPlants = async () => {
-    try {
-      const data = await plantsApi.getAllPlants(true);
-      setPlants(data);
-    } catch {
-      // Silent fail for plants
     }
   };
 
@@ -213,20 +190,11 @@ export const Orders: React.FC = () => {
   const handleBulkUpdate = async () => {
     if (!bulkUpdateStatus || selectedOrders.length === 0) return;
 
-    // Validate plant selection for RECEIVED_AT_PLANT
-    if (bulkUpdateStatus === 'RECEIVED_AT_PLANT' && !selectedPlantId) {
-      toast.error(t('orders.selectPlantRequired'));
-      return;
-    }
-
     setIsBulkUpdating(true);
     try {
       const request: BulkUpdateOrderStatusRequest = {
         orderIds: selectedOrders,
-        newStatus: bulkUpdateStatus,
-        ...(bulkUpdateStatus === 'RECEIVED_AT_PLANT' && selectedPlantId
-          ? { plantId: selectedPlantId as number }
-          : {}),
+        newStatus: bulkUpdateStatus
       };
 
       const updatedOrders = await ordersApi.bulkUpdateStatus(request);
@@ -243,7 +211,6 @@ export const Orders: React.FC = () => {
       setSelectedOrders([]);
       setIsBulkUpdateModalOpen(false);
       setBulkUpdateStatus('');
-      setSelectedPlantId('');
     } catch (error) {
       const axiosError = error as AxiosError<ApiError>;
       if (axiosError.response?.status === 403) {
@@ -616,7 +583,6 @@ export const Orders: React.FC = () => {
         onClose={() => {
           setIsBulkUpdateModalOpen(false);
           setBulkUpdateStatus('');
-          setSelectedPlantId('');
         }}
         title={t('orders.bulkUpdateTitle')}
         size="md"
@@ -647,18 +613,6 @@ export const Orders: React.FC = () => {
             </div>
           </div>
 
-          {bulkUpdateStatus === 'RECEIVED_AT_PLANT' && (
-            <Select
-              label={t('orders.assignPlant')}
-              value={selectedPlantId}
-              onChange={(e) => setSelectedPlantId(e.target.value ? Number(e.target.value) : '')}
-              options={plants.map((plant) => ({
-                value: plant.id,
-                label: plant.name,
-              }))}
-            />
-          )}
-
           <div className="flex justify-end gap-2 pt-4">
             <Button
               type="button"
@@ -666,7 +620,6 @@ export const Orders: React.FC = () => {
               onClick={() => {
                 setIsBulkUpdateModalOpen(false);
                 setBulkUpdateStatus('');
-                setSelectedPlantId('');
               }}
             >
               {t('common.cancel')}
@@ -674,7 +627,7 @@ export const Orders: React.FC = () => {
             <Button
               onClick={handleBulkUpdate}
               isLoading={isBulkUpdating}
-              disabled={!bulkUpdateStatus || (bulkUpdateStatus === 'RECEIVED_AT_PLANT' && !selectedPlantId)}
+              disabled={!bulkUpdateStatus}
             >
               {t('orders.updateOrders')}
             </Button>

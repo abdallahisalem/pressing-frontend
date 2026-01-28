@@ -237,5 +237,4 @@ export interface UpdatePlantRequest {
 export interface BulkUpdateOrderStatusRequest {
   orderIds: number[];
   newStatus: OrderStatus;
-  plantId?: number; // Required when status is RECEIVED_AT_PLANT
 }

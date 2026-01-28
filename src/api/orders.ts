@@ -2,17 +2,6 @@ import { apiClient } from './client';
 import type { Order, CreateOrderRequest, Payment, OrderStatus, BulkUpdateOrderStatusRequest, RecordPaymentRequest } from '../types';
 
 export const ordersApi = {
-  // Get orders by pressing ID
-  getOrdersByPressing: async (pressingId: number): Promise<Order[]> => {
-    const response = await apiClient.get<Order[]>(`/api/orders/pressing/${pressingId}`);
-    return response.data;
-  },
-
-  // Get orders by plant ID
-  getOrdersByPlant: async (plantId: number): Promise<Order[]> => {
-    const response = await apiClient.get<Order[]>(`/api/orders/plant/${plantId}`);
-    return response.data;
-  },
 
   // Get all COLLECTED orders (visible to all plant operators)
   getCollectedOrders: async (): Promise<Order[]> => {
