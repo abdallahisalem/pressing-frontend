@@ -82,6 +82,7 @@ export interface Pressing {
   name: string;
   address?: string;
   active: boolean;
+  minOrderAmount: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -90,12 +91,14 @@ export interface CreatePressingRequest {
   name: string;
   address?: string;
   active?: boolean;
+  minOrderAmount?: number | null;
 }
 
 export interface UpdatePressingRequest {
   name?: string;
   address?: string;
   active?: boolean;
+  minOrderAmount?: number | null;
 }
 
 // Pressing Item (Predefined catalog items)

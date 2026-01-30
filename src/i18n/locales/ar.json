@@ -138,6 +138,9 @@
     "cannotDeleteMessage": "هذه المغسلة لديها مستخدمين أو عملاء أو طلبات مرتبطة. يرجى إلغاء تفعيلها بدلاً من حذفها.",
     "deactivateInstead": "إلغاء التفعيل بدلاً من ذلك",
     "activeHelperText": "المغاسل النشطة تظهر في القوائم المنسدلة",
+    "minOrderAmount": "الحد الأدنى للطلب (أوقية)",
+    "minOrderAmountPlaceholder": "مثال: 500",
+    "minOrderAmountHelperText": "اتركه فارغاً لعدم وجود حد أدنى. سيتم رفض الطلبات الأقل من هذا المبلغ.",
     "noName": "اسم المغسلة مطلوب",
     "duplicateName": "يوجد مغسلة بهذا الاسم بالفعل"
   },
@@ -290,7 +293,8 @@
     "viewOrderDetails": "عرض تفاصيل الطلب",
     "createAnotherOrder": "إنشاء طلب آخر",
     "goToOrdersList": "الذهاب لقائمة الطلبات",
-    "copyReferenceCode": "نسخ الرقم المرجعي"
+    "copyReferenceCode": "نسخ الرقم المرجعي",
+    "belowMinOrderAmount": "إجمالي الطلب ({{total}} أوقية) أقل من الحد الأدنى للطلب ({{min}} أوقية) لهذه المغسلة."
   },
   "orderDetails": {
     "title": "تفاصيل الطلب",

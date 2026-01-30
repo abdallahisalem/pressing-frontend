@@ -138,6 +138,9 @@
     "cannotDeleteMessage": "This pressing has associated users, clients, or orders. Please deactivate it instead of deleting.",
     "deactivateInstead": "Deactivate Instead",
     "activeHelperText": "Active pressings appear in dropdowns",
+    "minOrderAmount": "Minimum Order Amount (MRU)",
+    "minOrderAmountPlaceholder": "e.g., 500",
+    "minOrderAmountHelperText": "Leave empty for no minimum. Orders below this amount will be rejected.",
     "noName": "Pressing name is required",
     "duplicateName": "A pressing with this name already exists"
   },
@@ -290,7 +293,8 @@
     "viewOrderDetails": "View Order Details",
     "createAnotherOrder": "Create Another Order",
     "goToOrdersList": "Go to Orders List",
-    "copyReferenceCode": "Copy Reference Code"
+    "copyReferenceCode": "Copy Reference Code",
+    "belowMinOrderAmount": "Order total ({{total}} MRU) is below the minimum order amount ({{min}} MRU) for this pressing."
   },
   "orderDetails": {
     "title": "Order Details",

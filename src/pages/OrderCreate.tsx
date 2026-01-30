@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { clientsApi } from '../api/clients';
 import { ordersApi } from '../api/orders';
 import { pressingItemsApi } from '../api/pressingItems';
+import { pressingsApi } from '../api/pressings';
 import { Button, Input, Modal, UserDropdown, ConfirmDialog } from '../components';
 import type { Client, CreateOrderRequest, Order, OrderItemInput, PressingItem } from '../types';
 import type { AxiosError } from 'axios';
@@ -52,6 +53,9 @@ export const OrderCreate: React.FC = () => {
   const [isQuickClientModalOpen, setIsQuickClientModalOpen] = useState(false);
   const [isCreatingClient, setIsCreatingClient] = useState(false);
 
+  // Min order amount
+  const [minOrderAmount, setMinOrderAmount] = useState<number | null>(null);
+
   // Success modal
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
@@ -64,6 +68,7 @@ export const OrderCreate: React.FC = () => {
   useEffect(() => {
     loadClients();
     loadPressingItems();
+    loadMinOrderAmount();
   }, []);
 
   useEffect(() => {
@@ -106,6 +111,16 @@ export const OrderCreate: React.FC = () => {
       console.error('Failed to load pressing items:', error);
     } finally {
       setIsLoadingItems(false);
+    }
+  };
+
+  const loadMinOrderAmount = async () => {
+    if (!user?.pressingId) return;
+    try {
+      const pressing = await pressingsApi.getPressing(user.pressingId);
+      setMinOrderAmount(pressing.minOrderAmount);
+    } catch {
+      // Non-critical — proceed without min amount enforcement
     }
   };
 
@@ -196,6 +211,8 @@ export const OrderCreate: React.FC = () => {
   const canProceedToStep3 = () => {
     return items.length > 0 && items.every((item) => item.label.trim() !== '' && item.quantity > 0 && item.price > 0);
   };
+
+  const isBelowMinimum = minOrderAmount != null && minOrderAmount > 0 && calculateTotal() < minOrderAmount;
 
   const handleCreateOrder = async () => {
     if (!selectedClient || !user) return;
@@ -506,6 +523,14 @@ export const OrderCreate: React.FC = () => {
                         <span className="text-xl font-bold text-blue-600">{calculateTotal().toFixed(2)} MRU</span>
                       </div>
                     </div>
+
+                    {isBelowMinimum && (
+                      <div className="mt-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-sm text-red-800">
+                          {t('orderCreate.belowMinOrderAmount', { total: calculateTotal().toFixed(2), min: minOrderAmount!.toFixed(2) })}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -555,11 +580,19 @@ export const OrderCreate: React.FC = () => {
                   </p>
                 </div>
 
+                {isBelowMinimum && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-800">
+                      {t('orderCreate.belowMinOrderAmount', { total: calculateTotal().toFixed(2), min: minOrderAmount!.toFixed(2) })}
+                    </p>
+                  </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row justify-between gap-2 pt-4">
                   <Button variant="secondary" onClick={() => setCurrentStep(2)} className="w-full sm:w-auto">
                     {t('common.back')}
                   </Button>
-                  <Button onClick={handleCreateOrder} isLoading={isSubmitting} className="w-full sm:w-auto">
+                  <Button onClick={handleCreateOrder} isLoading={isSubmitting} disabled={isBelowMinimum} className="w-full sm:w-auto">
                     {t('orders.createOrder')}
                   </Button>
                 </div>

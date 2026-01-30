@@ -17,6 +17,7 @@ const pressingSchema = z.object({
   name: z.string().min(1, 'Pressing name is required'),
   address: z.string().optional(),
   active: z.boolean().optional(),
+  minOrderAmount: z.number().min(0).optional(),
 });
 
 type PressingFormData = z.infer<typeof pressingSchema>;
@@ -88,7 +89,11 @@ export const Pressings: React.FC = () => {
   const handleCreatePressing = async (data: PressingFormData) => {
     setIsSubmitting(true);
     try {
-      const newPressing = await pressingsApi.createPressing(data as CreatePressingRequest);
+      const payload: CreatePressingRequest = {
+        ...data,
+        minOrderAmount: data.minOrderAmount != null && !Number.isNaN(data.minOrderAmount) ? data.minOrderAmount : null,
+      };
+      const newPressing = await pressingsApi.createPressing(payload);
       setPressings([newPressing, ...pressings]);
       toast.success(t('pressings.pressingCreated'));
       setIsCreateModalOpen(false);
@@ -107,6 +112,7 @@ export const Pressings: React.FC = () => {
       name: pressing.name,
       address: pressing.address || '',
       active: pressing.active,
+      minOrderAmount: pressing.minOrderAmount ?? undefined,
     });
     setIsEditModalOpen(true);
   };
@@ -116,7 +122,11 @@ export const Pressings: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const updated = await pressingsApi.updatePressing(editingPressing.id, data as UpdatePressingRequest);
+      const payload: UpdatePressingRequest = {
+        ...data,
+        minOrderAmount: data.minOrderAmount != null && !Number.isNaN(data.minOrderAmount) ? data.minOrderAmount : null,
+      };
+      const updated = await pressingsApi.updatePressing(editingPressing.id, payload);
       setPressings(pressings.map((p) => (p.id === updated.id ? updated : p)));
       toast.success(t('pressings.pressingUpdated'));
       setIsEditModalOpen(false);
@@ -451,6 +461,16 @@ export const Pressings: React.FC = () => {
             <span className="ml-2 text-xs text-gray-500">({t('pressings.activeHelperText')})</span>
           </div>
 
+          <Input
+            {...register('minOrderAmount', { valueAsNumber: true })}
+            type="number"
+            label={t('pressings.minOrderAmount')}
+            placeholder={t('pressings.minOrderAmountPlaceholder')}
+            min="0"
+            step="0.01"
+          />
+          <p className="text-xs text-gray-500 -mt-3">{t('pressings.minOrderAmountHelperText')}</p>
+
           <div className="flex justify-end gap-2 pt-4">
             <Button
               type="button"
@@ -513,6 +533,16 @@ export const Pressings: React.FC = () => {
             </label>
             <span className="ml-2 text-xs text-gray-500">({t('pressings.activeHelperText')})</span>
           </div>
+
+          <Input
+            {...register('minOrderAmount', { valueAsNumber: true })}
+            type="number"
+            label={t('pressings.minOrderAmount')}
+            placeholder={t('pressings.minOrderAmountPlaceholder')}
+            min="0"
+            step="0.01"
+          />
+          <p className="text-xs text-gray-500 -mt-3">{t('pressings.minOrderAmountHelperText')}</p>
 
           <div className="flex justify-end gap-2 pt-4">
             <Button
