@@ -149,7 +149,6 @@ export interface Client {
 export interface CreateClientRequest {
   fullName: string;
   phone?: string;
-  pressingId: number;
 }
 
 // Order Item Types

@@ -2,9 +2,9 @@ import { apiClient } from './client';
 import type { Client, CreateClientRequest } from '../types';
 
 export const clientsApi = {
-  // Get clients by pressing ID
-  getClientsByPressing: async (pressingId: number): Promise<Client[]> => {
-    const response = await apiClient.get<Client[]>(`/api/clients/pressing/${pressingId}`);
+  // Get clients by pressing
+  getClientsByPressing: async (): Promise<Client[]> => {
+    const response = await apiClient.get<Client[]>(`/api/clients/pressing`);
     return response.data;
   },
 

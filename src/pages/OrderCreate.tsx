@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -87,8 +87,7 @@ export const OrderCreate: React.FC = () => {
     if (!user) return;
 
     try {
-      const pressingId = user.role === 'SUPERVISOR' ? user.pressingId : 1;
-      const data = await clientsApi.getClientsByPressing(pressingId);
+      const data = await clientsApi.getClientsByPressing();
       setClients(data);
       setFilteredClients(data);
     } catch (error) {
@@ -131,8 +130,7 @@ export const OrderCreate: React.FC = () => {
     try {
       const newClient = await clientsApi.createClient({
         fullName: data.fullName,
-        phone: data.phone,
-        pressingId: user.role === 'SUPERVISOR' ? user.pressingId : 1,
+        phone: data.phone
       });
       setClients([...clients, newClient]);
       setSelectedClient(newClient);
@@ -258,7 +256,11 @@ export const OrderCreate: React.FC = () => {
     setCustomItemPrice(0);
     setCustomItemQuantity(1);
   };
-
+  const steps = [
+    { id: 1, label: t('orderCreate.step1'), short: t('orderCreate.step1Short') },
+    { id: 2, label: t('orderCreate.step2'), short: t('orderCreate.step2Short') },
+    { id: 3, label: t('orderCreate.step3Review'), short: t('orderCreate.step3ReviewShort') },
+  ];
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}
@@ -308,39 +310,49 @@ export const OrderCreate: React.FC = () => {
       <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {/* Step Indicator - Now 3 steps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center">
-                  <div
-                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base ${
-                      currentStep >= step
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-600'
-                    }`}
-                  >
-                    {step}
-                  </div>
-                  {step < 3 && (
+          <div className="mb-8 w-full max-w-lg mx-auto">
+            {/* Step Circles & Lines */}
+            <div className="flex items-center justify-between mb-3">
+              {steps.map((step, idx) => (
+                <React.Fragment key={step.id}>
+                  <div className="flex flex-col items-center relative">
                     <div
-                      className={`w-12 sm:w-24 h-1 mx-1 sm:mx-2 ${
-                        currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
-                      }`}
-                    />
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-semibold text-sm sm:text-base transition-colors duration-300 ${currentStep >= step.id
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-600'
+                        }`}
+                    >
+                      {currentStep > step.id ? '✓' : step.id}
+                    </div>
+                  </div>
+
+                  {/* Connecting Line */}
+                  {idx !== steps.length - 1 && (
+                    <div className="flex-1 h-1 mx-2 bg-gray-200 overflow-hidden">
+                      <div
+                        className="h-full bg-blue-600 transition-all duration-500"
+                        style={{ width: currentStep > step.id ? '100%' : '0%' }}
+                      />
+                    </div>
                   )}
+                </React.Fragment>
+              ))}
+            </div>
+
+            {/* Labels */}
+            <div className="flex justify-between px-1">
+              {steps.map((step) => (
+                <div
+                  key={step.id}
+                  className={`text-xs sm:text-sm font-medium transition-colors ${currentStep >= step.id ? 'text-blue-700' : 'text-gray-400'
+                    }`}
+                >
+                  <span className="hidden sm:inline">{step.label}</span>
+                  <span className="sm:hidden">{step.short}</span>
                 </div>
               ))}
             </div>
-            <div className="flex justify-between mt-2 text-xs sm:text-sm">
-              <span className="hidden sm:inline">{t('orderCreate.step1')}</span>
-              <span className="sm:hidden">{t('orderCreate.step1Short')}</span>
-              <span className="hidden sm:inline">{t('orderCreate.step2')}</span>
-              <span className="sm:hidden">{t('orderCreate.step2Short')}</span>
-              <span className="hidden sm:inline">{t('orderCreate.step3Review')}</span>
-              <span className="sm:hidden">{t('orderCreate.step3ReviewShort')}</span>
-            </div>
           </div>
-
           {/* Step Content */}
           <div className="bg-white rounded-lg shadow p-6">
             {/* Step 1: Select Client */}
