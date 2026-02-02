@@ -7,7 +7,7 @@ import { toast } from '../utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { clientsApi } from '../api/clients';
-import { Button, Input, Select, Modal, SearchInput, UserDropdown, ConfirmDialog } from '../components';
+import { Button, Input, Modal, SearchInput, UserDropdown, ConfirmDialog } from '../components';
 import type { Client, CreateClientRequest } from '../types';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
@@ -15,7 +15,6 @@ import type { ApiError } from '../types';
 const clientSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   phone: z.string().optional(),
-  pressingId: z.string().min(1, 'Pressing is required'),
 });
 
 type ClientFormData = z.infer<typeof clientSchema>;
@@ -39,17 +38,23 @@ export const Clients: React.FC = () => {
     formState: { errors },
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
-    defaultValues: {
-      pressingId: user?.role === 'SUPERVISOR' ? user.pressingId.toString() : '',
-    },
   });
 
   const loadClients = async () => {
     if (!user) return;
 
     try {
-      const pressingId = user.role === 'SUPERVISOR' ? user.pressingId : 1; // For now, default to pressing 1 for ADMIN
-      const data = await clientsApi.getClientsByPressing(pressingId);
+      if (user.role !== 'ADMIN' && user.role !== 'SUPERVISOR') {
+        toast.error(t('clients.accessDenied'));
+        navigate('/dashboard');
+        return;
+      }
+      let data;
+      if (user.role === 'ADMIN')
+        data = await clientsApi.getAllClients();
+      else
+        data = await clientsApi.getClientsByPressing();
+
       setClients(data);
       setFilteredClients(data);
     } catch (error) {
@@ -82,8 +87,7 @@ export const Clients: React.FC = () => {
     try {
       const clientData: CreateClientRequest = {
         fullName: data.fullName,
-        phone: data.phone,
-        pressingId: parseInt(data.pressingId),
+        phone: data.phone
       };
       const newClient = await clientsApi.createClient(clientData);
       setClients([...clients, newClient]);
@@ -92,7 +96,6 @@ export const Clients: React.FC = () => {
       reset({
         fullName: '',
         phone: '',
-        pressingId: user?.role === 'SUPERVISOR' ? user.pressingId.toString() : '',
       });
     } catch (error) {
       const axiosError = error as AxiosError<ApiError>;
@@ -106,7 +109,6 @@ export const Clients: React.FC = () => {
     reset({
       fullName: '',
       phone: '',
-      pressingId: user?.role === 'SUPERVISOR' ? user.pressingId.toString() : '',
     });
     setIsCreateModalOpen(true);
   };
@@ -190,21 +192,21 @@ export const Clients: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('clients.id')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('clients.fullName')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('clients.phone')}
                     </th>
                     {user?.role === 'ADMIN' && (
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                         {t('clients.pressing')}
                       </th>
                     )}
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('clients.createdAt')}
                     </th>
                   </tr>
@@ -295,18 +297,6 @@ export const Clients: React.FC = () => {
             placeholder={t('clients.phonePlaceholder')}
             error={errors.phone?.message}
           />
-
-          {user?.role === 'ADMIN' && (
-            <Select
-              {...register('pressingId')}
-              label={t('clients.pressing')}
-              options={[
-                { value: '1', label: 'Main Pressing' },
-                { value: '2', label: 'Branch Pressing' },
-              ]}
-              error={errors.pressingId?.message}
-            />
-          )}
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button

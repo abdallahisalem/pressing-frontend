@@ -73,7 +73,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
         </div>
 
         {/* User Info - Hidden on mobile */}
-        <div className="hidden md:block text-left">
+        <div className="hidden md:block text-start">
           <div className="text-sm font-semibold text-gray-900 leading-tight">{userName}</div>
           <div className="text-xs text-gray-500">{pressingName || userRole}</div>
         </div>
@@ -117,7 +117,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
               <button
                 onClick={() => handleLanguageClick('en')}
                 disabled={i18n.language === 'en'}
-                className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${
+                className={`w-full px-4 py-2 text-start text-sm transition-colors flex items-center gap-2 ${
                   i18n.language === 'en'
                     ? 'text-gray-400 cursor-default'
                     : 'text-gray-700 hover:bg-gray-50'
@@ -138,7 +138,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
               <button
                 onClick={() => handleLanguageClick('ar')}
                 disabled={i18n.language === 'ar'}
-                className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${
+                className={`w-full px-4 py-2 text-start text-sm transition-colors flex items-center gap-2 ${
                   i18n.language === 'ar'
                     ? 'text-gray-400 cursor-default'
                     : 'text-gray-700 hover:bg-gray-50'
@@ -162,7 +162,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
                 setIsOpen(false);
                 onLogout();
               }}
-              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+              className="w-full px-4 py-2 text-start text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

@@ -4,8 +4,8 @@ import { toast } from '../utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { ordersApi } from '../api/orders';
-import { Button, StatusBadge, ConfirmDialog, UserDropdown, StatusTimeline } from '../components';
-import type { Order, OrderStatus, PaymentMethod } from '../types';
+import { Button, StatusBadge, ConfirmDialog, UserDropdown } from '../components';
+import type { Order, OrderStatus, PaymentMethod, StatusHistoryEntry } from '../types';
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
 
@@ -187,8 +187,9 @@ export const OrderDetails: React.FC = () => {
     order.status === 'DELIVERED' &&
     !order.payment;
   const currentStatusIndex = getStatusIndex(order.status);
-
+  const isInternalStaff = user?.role !== 'PLANT_OPERATOR';
   return (
+    
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}
       <nav className="bg-white shadow-sm border-b border-gray-200 no-print">
@@ -234,227 +235,120 @@ export const OrderDetails: React.FC = () => {
         confirmVariant="danger"
       />
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {/* Header Section */}
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
-              <div className="flex-1">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {/* 1. Header & Quick Actions */}
+        <header className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
                   {order.referenceCode}
                 </h2>
                 <StatusBadge status={order.status} type="order" />
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 no-print">
-                <Button variant="secondary" onClick={handleCopyReferenceCode} className="w-full sm:w-auto">
-                  {t('orderDetails.copyCode')}
-                </Button>
-                <Button variant="secondary" onClick={handlePrintTicket} className="w-full sm:w-auto">
-                  {t('orderDetails.printTicket')}
-                </Button>
-              </div>
+              <p className="text-sm text-gray-500">
+                {t('orderDetails.orderCreated')}: {new Date(order.createdAt).toLocaleString()}
+              </p>
+            </div>
+            
+            <div className="flex gap-2 w-full md:w-auto no-print">
+              <Button variant="secondary" onClick={handleCopyReferenceCode} className="flex-1 md:flex-none">
+                {t('orderDetails.copyCode')}
+              </Button>
+              <Button variant="primary" onClick={handlePrintTicket} className="flex-1 md:flex-none">
+                {t('orderDetails.printTicket')}
+              </Button>
             </div>
           </div>
+        </header>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {/* Client Information */}
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">{t('orderDetails.clientInformation')}</h3>
-              <div className="space-y-2">
-                <div>
-                  <p className="text-sm text-gray-600">{t('orderDetails.name')}</p>
-                  <p className="text-gray-900 font-medium">{order.clientName}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">{t('orderDetails.pressing')}</p>
-                  <p className="text-gray-900">{order.pressingName}</p>
-                </div>
-                {order.plantName && (
-                  <div>
-                    <p className="text-sm text-gray-600">{t('orderDetails.plant')}</p>
-                    <p className="text-gray-900">{order.plantName}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm text-gray-600">{t('orderDetails.orderCreated')}</p>
-                  <p className="text-gray-900">{new Date(order.createdAt).toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* 2. Information Cards */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Client Card */}
+              <InfoCard title={t('orderDetails.clientInformation')}>
+                <DataField label={t('orderDetails.name')} value={order.clientName} bold />
+                <DataField label={t('clients.phone')} value={order.clientPhone} />
+                <DataField label={t('orderDetails.pressing')} value={order.pressingName} />
+                {order.plantName && <DataField label={t('orderDetails.plant')} value={order.plantName} />}
+              </InfoCard>
 
-            {/* Payment Information - Hidden for PLANT_OPERATOR */}
-            {user?.role !== 'PLANT_OPERATOR' && (
-              <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">{t('orderDetails.paymentInformation')}</h3>
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-sm text-gray-600">{t('orderDetails.totalAmount')}</p>
-                    <p className="text-gray-900 font-medium text-xl">{order.totalAmount?.toFixed(2) || '0.00'} MRU</p>
+              {/* Payment Card (Conditional) */}
+              {isInternalStaff && (
+                <InfoCard title={t('orderDetails.paymentInformation')}>
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-500">{t('orderDetails.totalAmount')}</p>
+                    <p className="text-2xl font-bold text-blue-600">{order.totalAmount?.toFixed(2)} MRU</p>
                   </div>
                   {order.payment ? (
-                    <>
-                      <div>
-                        <p className="text-sm text-gray-600">{t('orderDetails.paymentMethod')}</p>
-                        <p className="text-gray-900">{getPaymentMethodLabel(order.payment.method)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">{t('orderDetails.paymentStatus')}</p>
-                        <StatusBadge status={order.payment.status} type="payment" />
-                      </div>
-                      {order.payment.paidAt && (
-                        <div>
-                          <p className="text-sm text-gray-600">{t('orderDetails.paidAt')}</p>
-                          <p className="text-gray-900">{new Date(order.payment.paidAt).toLocaleString()}</p>
-                        </div>
-                      )}
-                    </>
+                    <div className="space-y-3 border-t pt-3">
+                      <DataField label={t('orderDetails.paymentMethod')} value={getPaymentMethodLabel(order.payment.method)} />
+                      <StatusBadge status={order.payment.status} type="payment" />
+                    </div>
                   ) : (
-                    <div>
-                      <p className="text-sm text-gray-600">{t('orderDetails.paymentStatus')}</p>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        {t('orderDetails.pendingPayment')}
-                      </span>
+                    <div className="mt-2 p-2 bg-yellow-50 text-yellow-700 text-xs rounded-md border border-yellow-100">
+                      {t('orderDetails.pendingPayment')}
                     </div>
                   )}
-                </div>
+                </InfoCard>
+              )}
+            </div>
+
+            {/* 3. Items Table */}
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+              <div className="p-6 border-b border-gray-50">
+                <h3 className="font-semibold text-gray-900">{t('orderDetails.orderItems')}</h3>
               </div>
-            )}
-          </div>
-
-          {/* Order Items */}
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6 mt-4 sm:mt-6">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">{t('orderDetails.orderItems')}</h3>
-
-            {/* Desktop Table View */}
-            <div className="hidden sm:block overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      {t('orderDetails.item')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      {t('orderDetails.quantity')}
-                    </th>
-                    {user?.role !== 'PLANT_OPERATOR' && (
-                      <>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          {t('orderDetails.unitPrice')}
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                          {t('orderDetails.subtotal')}
-                        </th>
-                      </>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {order.items.map((item) => (
-                    <tr key={item.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {item.label}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        x{item.quantity}
-                      </td>
-                      {user?.role !== 'PLANT_OPERATOR' && (
-                        <>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {item.price?.toFixed(2) || '0.00'} MRU
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {((item.price || 0) * item.quantity).toFixed(2)} MRU
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile List View */}
-            <div className="sm:hidden space-y-2">
-              {order.items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <span className="text-sm font-medium text-gray-900">{item.label}</span>
-                    <span className="text-sm text-gray-600 ml-2">x{item.quantity}</span>
-                  </div>
-                  {user?.role !== 'PLANT_OPERATOR' && (
-                    <span className="text-sm font-medium text-blue-600">
-                      {((item.price || 0) * item.quantity).toFixed(2)} MRU
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 pt-4 border-t">
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-600">
-                  {t('orderDetails.total')}: {order.items.reduce((sum, item) => sum + item.quantity, 0)} {t('orders.items')}
-                </p>
-                {user?.role !== 'PLANT_OPERATOR' && (
-                  <p className="text-lg font-bold text-blue-600">
-                    {order.totalAmount?.toFixed(2) || '0.00'} MRU
-                  </p>
+              <OrderItemsTable items={order.items} showPricing={isInternalStaff} />
+              
+              <div className="p-6 bg-gray-50 flex justify-between items-center">
+                <span className="text-gray-600">
+                   {order.items.reduce((sum, i) => sum + i.quantity, 0)} {t('orders.items')}
+                </span>
+                {isInternalStaff && (
+                  <span className="text-xl font-bold text-gray-900">
+                    {order.totalAmount?.toFixed(2)} MRU
+                  </span>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Status History Timeline */}
-          {order.statusHistory && order.statusHistory.length > 0 && (
-            <div className="bg-white rounded-lg shadow p-4 sm:p-6 mt-4 sm:mt-6">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
-                {t('orderDetails.statusHistory')}
-              </h3>
-              <StatusTimeline history={order.statusHistory} />
-            </div>
-          )}
+          {/* 4. Sidebar: Status & Timeline */}
+          <aside className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 no-print">
+              <h3 className="font-semibold text-gray-900 mb-6">{t('orderDetails.statusManagement')}</h3>
+              
+              {/* Compact Status Progress */}
+              <div className="space-y-4 mb-8">
+                 <StatusStepper
+                    currentStatus={order.status}
+                    allStatuses={ALL_STATUSES}
+                    currentIndex={currentStatusIndex}
+                    statusHistory={order.statusHistory}
+                 />
+              </div>
 
-          {/* Status Management */}
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6 mt-4 sm:mt-6 no-print">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">{t('orderDetails.statusManagement')}</h3>
-
-            {/* Status Timeline - 8 stages */}
-            <div className="mb-6 overflow-x-auto">
-              <div className="flex items-center justify-between min-w-[600px] px-2">
-                {ALL_STATUSES.map((status, index) => (
-                  <div key={status} className="flex items-center">
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs ${
-                          order.status === status
-                            ? 'bg-blue-600 text-white'
-                            : index < currentStatusIndex
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-200 text-gray-600'
-                        }`}
-                      >
-                        {index < currentStatusIndex ? '\u2713' : index + 1}
-                      </div>
-                      <span className="text-xs mt-1 text-center max-w-[60px] leading-tight">
-                        {t(`status.order.${status}`)}
-                      </span>
-                    </div>
-                    {index < ALL_STATUSES.length - 1 && (
-                      <div
-                        className={`w-8 h-1 mx-1 ${
-                          index < currentStatusIndex
-                            ? 'bg-green-600'
-                            : 'bg-gray-200'
-                        }`}
-                      />
-                    )}
-                  </div>
-                ))}
+              <div className="space-y-3">
+                {nextStatus && (
+                  <Button onClick={() => handleUpdateStatus(nextStatus)} isLoading={isUpdatingStatus} className="w-full py-6">
+                    {t('orderDetails.markAs')} {t(`status.order.${nextStatus}`)}
+                  </Button>
+                )}
+                {canRecordPayment && (
+                  <Button variant="success" onClick={() => setIsPaymentModalOpen(true)} className="w-full">
+                    {t('orderDetails.recordPayment')}
+                  </Button>
+                )}
               </div>
             </div>
+          </aside>
+        </div>
+      </main>
 
-            {/* Workflow Location Indicator */}
+ {/* Workflow Location Indicator */}
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
                 <div className={`p-3 rounded ${['CREATED', 'COLLECTED', 'READY', 'DELIVERED'].includes(order.status) ? 'bg-blue-100' : 'bg-gray-100'}`}>
@@ -471,49 +365,8 @@ export const OrderDetails: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Actions */}
-            <div className="space-y-3">
-              {nextStatus && (
-                <Button
-                  onClick={() => handleUpdateStatus(nextStatus)}
-                  isLoading={isUpdatingStatus}
-                  className="w-full"
-                >
-                  {t('orderDetails.markAs')} {t(`status.order.${nextStatus}`)}
-                </Button>
-              )}
-
-              {canRecordPayment && (
-                <Button
-                  variant="success"
-                  onClick={() => setIsPaymentModalOpen(true)}
-                  className="w-full"
-                >
-                  {t('orderDetails.recordPayment')}
-                </Button>
-              )}
-
-              {order.status === 'DELIVERED' && order.payment && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-800 font-medium text-center">
-                    {t('orderDetails.orderCompleted')}
-                  </p>
-                </div>
-              )}
-
-              {order.status === 'DELIVERED' && !order.payment && user?.role !== 'PLANT_OPERATOR' && (
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-yellow-800 font-medium text-center">
-                    {t('orderDetails.awaitingPayment')}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </main>
-
+      {/* Main Content */}
+ 
       {/* Record Payment Modal */}
       {isPaymentModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -586,5 +439,149 @@ export const OrderDetails: React.FC = () => {
         }
       `}</style>
     </div>
+  );
+  
+};
+
+
+// Helper Sub-Component to keep things clean
+const InfoCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 h-full">
+    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">{title}</h3>
+    <div className="space-y-4">{children}</div>
+  </div>
+);
+
+const DataField = ({ label, value, bold }: { label: string; value: string | undefined; bold?: boolean }) => (
+  <div>
+    <p className="text-xs text-gray-500 mb-0.5">{label}</p>
+    <p className={`text-gray-900 ${bold ? 'font-semibold' : ''}`}>{value || '-'}</p>
+  </div>
+);
+const StatusStepper = ({ currentStatus, allStatuses, currentIndex, statusHistory }: { currentStatus: OrderStatus; allStatuses: OrderStatus[]; currentIndex: number; statusHistory?: StatusHistoryEntry[] }) => {
+    const { t, i18n } = useTranslation();
+
+  // Build a map from status -> history entry for quick lookup
+  const historyMap = new Map<string, StatusHistoryEntry>();
+  if (statusHistory) {
+    for (const entry of statusHistory) {
+      historyMap.set(entry.status, entry);
+    }
+  }
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const locale = i18n.language === 'ar' ? 'ar-SA' : 'en-US';
+    return date.toLocaleDateString(locale, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  return (
+    <div className="flex flex-col space-y-1">
+      {allStatuses.map((status, index) => {
+        const isCompleted = index < currentIndex;
+        const isActive = currentStatus === status;
+        const historyEntry = historyMap.get(status);
+
+        return (
+          <div key={status} className="flex items-start gap-3">
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all border-2 ${
+                  isActive
+                    ? 'bg-blue-600 border-blue-600 text-white ring-4 ring-blue-50'
+                    : isCompleted
+                    ? 'bg-green-500 border-green-500 text-white'
+                    : 'bg-white border-gray-300 text-gray-400'
+                }`}
+              >
+                {isCompleted ? '✓' : index + 1}
+              </div>
+              {/* Connector Line */}
+              {index !== allStatuses.length - 1 && (
+                <div className={`w-0.5 h-6 mt-1 ${isCompleted ? 'bg-green-500' : isActive ? 'bg-blue-200' : 'bg-gray-200'}`} />
+              )}
+            </div>
+
+            <div className="flex flex-col pb-2">
+              <span className={`text-sm font-medium ${isActive ? 'text-blue-700' : isCompleted ? 'text-gray-900' : 'text-gray-400'}`}>
+                {t(`status.order.${status}`)}
+              </span>
+              {(isCompleted || isActive) && historyEntry && (
+                <span className="text-[11px] text-gray-400">
+                  {historyEntry.changedByUserName} &bull; {formatDate(historyEntry.changedAt)}
+                </span>
+              )}
+              {isActive && !historyEntry && (
+                <span className="text-[10px] text-blue-500 font-bold uppercase tracking-widest">
+                  {t('common.currentStep')}
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+const OrderItemsTable = ({ items, showPricing }: { items: Order['items']; showPricing: boolean }) => {
+  const { t } = useTranslation();
+  return (
+    <>
+      {/* Desktop View */}
+      <div className="hidden sm:block overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('orderDetails.item')}</th>
+              <th className="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('orderDetails.quantity')}</th>
+              {showPricing && (
+                <>
+                  <th className="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('orderDetails.unitPrice')}</th>
+                  <th className="px-6 py-3 text-start text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('orderDetails.subtotal')}</th>
+                </>
+              )}
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-100">
+            {items.map((item) => (
+              <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.label}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">x{item.quantity}</td>
+                {showPricing && (
+                  <>
+                    <td className="px-6 py-4 text-sm text-gray-600">{item.price?.toFixed(2)} MRU</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                      {((item.price || 0) * item.quantity).toFixed(2)} MRU
+                    </td>
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile View */}
+      <div className="sm:hidden divide-y divide-gray-100">
+        {items.map((item) => (
+          <div key={item.id} className="p-4 flex justify-between items-center">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{item.label}</p>
+              <p className="text-xs text-gray-500">{t('orderDetails.quantity')}: {item.quantity}</p>
+            </div>
+            {showPricing && (
+              <p className="text-sm font-bold text-blue-600">
+                {((item.price || 0) * item.quantity).toFixed(2)} MRU
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
   );
 };

@@ -2,6 +2,12 @@ import { apiClient } from './client';
 import type { Client, CreateClientRequest } from '../types';
 
 export const clientsApi = {
+  // Get all clients
+  getAllClients: async (): Promise<Client[]> => {
+    const response = await apiClient.get<Client[]>(`/api/clients`);
+    return response.data;
+  },
+
   // Get clients by pressing
   getClientsByPressing: async (): Promise<Client[]> => {
     const response = await apiClient.get<Client[]>(`/api/clients/pressing`);

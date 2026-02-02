@@ -191,6 +191,7 @@ export interface Order {
   pressingName: string;
   clientId: number;
   clientName: string;
+  clientPhone: string;
   plantId: number | null;
   plantName: string | null;
   status: OrderStatus;

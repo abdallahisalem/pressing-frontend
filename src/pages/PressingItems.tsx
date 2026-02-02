@@ -308,17 +308,17 @@ export const PressingItems: React.FC = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                           {t('pressingItems.itemLabel')}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                           {t('pressingItems.price')}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase tracking-wider">
                           {t('pressingItems.createdAt')}
                         </th>
                         {canManageItems && (
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase tracking-wider">
                             {t('common.actions')}
                           </th>
                         )}
@@ -337,7 +337,7 @@ export const PressingItems: React.FC = () => {
                             {new Date(item.createdAt).toLocaleDateString()}
                           </td>
                           {canManageItems && (
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                            <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium space-x-3">
                               <button
                                 onClick={() => handleEditClick(item)}
                                 className="text-blue-600 hover:text-blue-900 transition-colors"

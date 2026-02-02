@@ -436,7 +436,7 @@ export const OrderCreate: React.FC = () => {
                         <button
                           key={item.id}
                           onClick={() => handleAddPredefinedItem(item)}
-                          className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+                          className="p-3 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-start"
                         >
                           <p className="font-medium text-gray-900 text-sm truncate">{item.label}</p>
                           <p className="text-blue-600 font-bold text-sm">{item.price.toFixed(2)} MRU</p>
