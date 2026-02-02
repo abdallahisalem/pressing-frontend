@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from '../utils';
+import { toast, formatDate } from '../utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { pressingItemsApi } from '../api/pressingItems';
@@ -334,7 +334,7 @@ export const PressingItems: React.FC = () => {
                             {item.price.toFixed(2)} MRU
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(item.createdAt).toLocaleDateString()}
+                            {formatDate(item.createdAt)}
                           </td>
                           {canManageItems && (
                             <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium space-x-3">
@@ -371,7 +371,7 @@ export const PressingItems: React.FC = () => {
                         </div>
                       </div>
                       <div className="text-xs text-gray-500 mb-3">
-                        {t('pressingItems.createdAt')}: {new Date(item.createdAt).toLocaleDateString()}
+                        {t('pressingItems.createdAt')}: {formatDate(item.createdAt)}
                       </div>
                       {canManageItems && (
                         <div className="flex gap-3 text-sm">

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from '../utils';
+import { toast, formatDate } from '../utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { pressingsApi } from '../api/pressings';
@@ -325,7 +325,7 @@ export const Pressings: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(pressing.createdAt).toLocaleDateString()}
+                          {formatDate(pressing.createdAt)}
                         </td>
                         {isAdmin && (
                           <td className="px-6 py-4 whitespace-nowrap text-end text-sm font-medium space-x-3">
@@ -379,7 +379,7 @@ export const Pressings: React.FC = () => {
                       </span>
                     </div>
                     <div className="text-xs text-gray-500 mb-3">
-                      {t('pressings.createdAt')}: {new Date(pressing.createdAt).toLocaleDateString()}
+                      {t('pressings.createdAt')}: {formatDate(pressing.createdAt)}
                     </div>
                     {isAdmin && (
                       <div className="flex gap-3 text-sm">

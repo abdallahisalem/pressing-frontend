@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from '../utils';
+import { toast, formatDate } from '../utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { clientsApi } from '../api/clients';
@@ -229,7 +229,7 @@ export const Clients: React.FC = () => {
                         </td>
                       )}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(client.createdAt).toLocaleDateString()}
+                        {formatDate(client.createdAt)}
                       </td>
                     </tr>
                   ))}
@@ -258,7 +258,7 @@ export const Clients: React.FC = () => {
                     )}
                     <div className="flex justify-between">
                       <span className="text-gray-500">{t('clients.createdAt')}:</span>
-                      <span className="text-gray-900">{new Date(client.createdAt).toLocaleDateString()}</span>
+                      <span className="text-gray-900">{formatDate(client.createdAt)}</span>
                     </div>
                   </div>
                 </div>

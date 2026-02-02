@@ -7,7 +7,7 @@ import { Button, ConfirmDialog, Modal, SearchInput, StatusBadge, UserDropdown } 
 import { useAuth } from '../contexts/AuthContext';
 import type { ApiError, BulkUpdateOrderStatusRequest, Order, OrderStatus } from '../types';
 import { toast } from '../utils';
-
+import { formatDate } from '../utils';
 // All 8 order statuses in workflow order
 const ALL_STATUSES: OrderStatus[] = [
   'CREATED',
@@ -487,7 +487,8 @@ export const Orders: React.FC = () => {
                         </>
                       )}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {/* {new Date(order.createdAt).toISOString()} */}
+                        <span>{formatDate(order.createdAt)}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
@@ -559,7 +560,7 @@ export const Orders: React.FC = () => {
                         </div>
                         <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                           <span className="text-xs text-gray-500">
-                            {new Date(order.createdAt).toLocaleDateString()}
+                            {formatDate(order.createdAt)}
                           </span>
                           <span className="text-xs font-medium text-blue-600">
                             {t('orders.tapToView')}

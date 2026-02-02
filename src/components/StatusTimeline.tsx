@@ -23,7 +23,7 @@ export const StatusTimeline: React.FC<StatusTimelineProps> = ({ history, compact
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    const locale = i18n.language === 'ar' ? 'ar-SA' : 'en-US';
+    const locale = i18n.language === 'ar' ? 'ar-SA-u-nu-arab' : 'en-US';
 
     if (compact) {
       return date.toLocaleDateString(locale, {

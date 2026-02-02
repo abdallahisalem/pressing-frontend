@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { toast } from '../utils';
+import { toast, formatDate } from '../utils';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { ordersApi } from '../api/orders';
@@ -248,7 +248,7 @@ export const OrderDetails: React.FC = () => {
                 <StatusBadge status={order.status} type="order" />
               </div>
               <p className="text-sm text-gray-500">
-                {t('orderDetails.orderCreated')}: {new Date(order.createdAt).toLocaleString()}
+                {t('orderDetails.orderCreated')}: {formatDate(order.createdAt)}
               </p>
             </div>
             
@@ -469,9 +469,9 @@ const StatusStepper = ({ currentStatus, allStatuses, currentIndex, statusHistory
     }
   }
 
-  const formatDate = (dateString: string): string => {
+  const formatStepDate = (dateString: string): string => {
     const date = new Date(dateString);
-    const locale = i18n.language === 'ar' ? 'ar-SA' : 'en-US';
+    const locale = i18n.language === 'ar' ? 'ar-SA-u-nu-arab' : 'en-US';
     return date.toLocaleDateString(locale, {
       month: 'short',
       day: 'numeric',
@@ -513,7 +513,7 @@ const StatusStepper = ({ currentStatus, allStatuses, currentIndex, statusHistory
               </span>
               {(isCompleted || isActive) && historyEntry && (
                 <span className="text-[11px] text-gray-400">
-                  {historyEntry.changedByUserName} &bull; {formatDate(historyEntry.changedAt)}
+                  {historyEntry.changedByUserName} &bull; {formatStepDate(historyEntry.changedAt)}
                 </span>
               )}
               {isActive && !historyEntry && (
