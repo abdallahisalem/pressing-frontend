@@ -374,11 +374,10 @@ export const Orders: React.FC = () => {
                   <button
                     key={status}
                     onClick={() => setStatusFilter(status)}
-                    className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                      statusFilter === status
+                    className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${statusFilter === status
                         ? 'bg-blue-100 text-blue-700'
                         : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                      }`}
                   >
                     {status === 'ALL' ? t('orders.all') : t(`status.order.${status}`)} ({getStatusCount(status)})
                   </button>
@@ -473,8 +472,13 @@ export const Orders: React.FC = () => {
                       {user?.role !== 'PLANT_OPERATOR' && (
                         <>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {order.payment ? `$${order.payment.amount.toFixed(2)}` : '-'}
-                          </td>
+                            {
+                              order.payment?.amount
+                                ? `${(Number(order.payment.amount) || 0).toFixed(2)} MRU`
+                                : order.totalAmount
+                                  ? `${(Number(order.totalAmount) || 0).toFixed(2)} MRU`
+                                  : '-'
+                            }                         </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {order.payment ? (
                               <StatusBadge status={order.payment.status} type="payment" />
@@ -531,15 +535,19 @@ export const Orders: React.FC = () => {
                             <span className="text-sm text-gray-900">{order.plantName}</span>
                           </div>
                         )}
-                        {user?.role !== 'PLANT_OPERATOR' && order.payment && (
+                        {user?.role !== 'PLANT_OPERATOR' && (
                           <>
                             <div className="flex justify-between items-center">
                               <span className="text-sm text-gray-600">{t('orders.amount')}:</span>
-                              <span className="text-sm font-bold text-gray-900">${order.payment.amount.toFixed(2)}</span>
+                              <span className="text-sm font-bold text-gray-900">{order.payment?.amount
+                                ? `${(Number(order.payment.amount) || 0).toFixed(2)} MRU`
+                                : order.totalAmount
+                                  ? `${(Number(order.totalAmount) || 0).toFixed(2)} MRU`
+                                  : '-'}</span>
                             </div>
                             <div className="flex justify-between items-center">
                               <span className="text-sm text-gray-600">{t('orders.payment')}:</span>
-                              <StatusBadge status={order.payment.status} type="payment" />
+                              <StatusBadge status={order.payment?.status || 'INITIATED'} type="payment" />
                             </div>
                           </>
                         )}
