@@ -205,7 +205,7 @@ export const Pressings: React.FC = () => {
           <div className="flex justify-between items-center h-16">
             <button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <img src="/img/logo.png" alt="Logo" className="h-10 w-10" />
               <div className="text-start">

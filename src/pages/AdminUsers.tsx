@@ -240,7 +240,7 @@ export const AdminUsers: React.FC = () => {
           <div className="flex justify-between items-center h-16">
             <button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
             >
               <img src="/img/logo.png" alt="Logo" className="h-10 w-10" />
               <div className="text-start">
@@ -345,7 +345,13 @@ export const AdminUsers: React.FC = () => {
                               ? 'bg-orange-100 text-orange-800'
                               : 'bg-blue-100 text-blue-800'
                         }`}>
-                          {user.role === 'PLANT_OPERATOR' ? t('users.plantOperator') : user.role}
+                        {
+                            {
+                              PLANT_OPERATOR: t('users.plantOperator'),
+                              SUPERVISOR: t('users.supervisor'),
+                              ADMIN: t('users.admin'),
+                            }[user.role] || user.role
+                          }
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -372,12 +378,12 @@ export const AdminUsers: React.FC = () => {
                           >
                             {t('users.regenerate')}
                           </button>
-                          <button
+                          {/* <button
                             onClick={() => handleDeleteUser(user.id)}
                             className="text-red-600 hover:text-red-900 transition-colors"
                           >
                             {t('common.delete')}
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                     </tr>

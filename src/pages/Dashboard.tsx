@@ -27,7 +27,7 @@ export const Dashboard: React.FC = () => {
                 <h1 className="text-base sm:text-xl font-bold text-gray-900 leading-tight">
                   {t('dashboard.title')}
                 </h1>
-                <p className="text-xs text-gray-500 hidden sm:block">Dashboard</p>
+                <p className="text-xs text-gray-500 hidden sm:block">{t('common.dashboard')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
