@@ -40,9 +40,9 @@ export const Pressings: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Delete confirmation
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingPressing, setDeletingPressing] = useState<Pressing | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  // const [deletingPressing, setDeletingPressing] = useState<Pressing | null>(null);
+  // const [isDeleting, setIsDeleting] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<PressingFormData>({
@@ -140,33 +140,33 @@ export const Pressings: React.FC = () => {
     }
   };
 
-  const handleDeleteClick = (pressing: Pressing) => {
-    setDeletingPressing(pressing);
-    setIsDeleteDialogOpen(true);
-  };
+  // const handleDeleteClick = (pressing: Pressing) => {
+  //   setDeletingPressing(pressing);
+  //   setIsDeleteDialogOpen(true);
+  // };
 
-  const handleDeleteConfirm = async () => {
-    if (!deletingPressing) return;
+  // const handleDeleteConfirm = async () => {
+  //   if (!deletingPressing) return;
 
-    setIsDeleting(true);
-    try {
-      await pressingsApi.deletePressing(deletingPressing.id);
-      setPressings(pressings.filter((p) => p.id !== deletingPressing.id));
-      toast.success(t('pressings.pressingDeleted'));
-      setIsDeleteDialogOpen(false);
-      setDeletingPressing(null);
-    } catch (error) {
-      const axiosError = error as AxiosError<ApiError>;
-      if (axiosError.response?.status === 409) {
-        // Show special message for conflict (has associated data)
-        toast.error(t('pressings.cannotDeleteMessage'));
-      } else {
-        toast.error(axiosError.response?.data?.message || t('errors.failedToDelete'));
-      }
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  //   setIsDeleting(true);
+  //   try {
+  //     await pressingsApi.deletePressing(deletingPressing.id);
+  //     setPressings(pressings.filter((p) => p.id !== deletingPressing.id));
+  //     toast.success(t('pressings.pressingDeleted'));
+  //     setIsDeleteDialogOpen(false);
+  //     setDeletingPressing(null);
+  //   } catch (error) {
+  //     const axiosError = error as AxiosError<ApiError>;
+  //     if (axiosError.response?.status === 409) {
+  //       // Show special message for conflict (has associated data)
+  //       toast.error(t('pressings.cannotDeleteMessage'));
+  //     } else {
+  //       toast.error(axiosError.response?.data?.message || t('errors.failedToDelete'));
+  //     }
+  //   } finally {
+  //     setIsDeleting(false);
+  //   }
+  // };
 
   const handleToggleActive = async (pressing: Pressing) => {
     try {
@@ -564,7 +564,7 @@ export const Pressings: React.FC = () => {
       </Modal>
 
       {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
+      {/* <ConfirmDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => {
           setIsDeleteDialogOpen(false);
@@ -576,7 +576,7 @@ export const Pressings: React.FC = () => {
         confirmText={t('common.delete')}
         confirmVariant="danger"
         isLoading={isDeleting}
-      />
+      /> */}
     </div>
   );
 };

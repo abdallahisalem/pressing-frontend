@@ -39,9 +39,9 @@ export const AdminPlants: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Delete confirmation
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingPlant, setDeletingPlant] = useState<Plant | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  // const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  // const [deletingPlant, setDeletingPlant] = useState<Plant | null>(null);
+  // const [isDeleting, setIsDeleting] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<PlantFormData>({
@@ -130,32 +130,32 @@ export const AdminPlants: React.FC = () => {
     }
   };
 
-  const handleDeleteClick = (plant: Plant) => {
-    setDeletingPlant(plant);
-    setIsDeleteDialogOpen(true);
-  };
+  // const handleDeleteClick = (plant: Plant) => {
+  //   setDeletingPlant(plant);
+  //   setIsDeleteDialogOpen(true);
+  // };
 
-  const handleDeleteConfirm = async () => {
-    if (!deletingPlant) return;
+  // const handleDeleteConfirm = async () => {
+  //   if (!deletingPlant) return;
 
-    setIsDeleting(true);
-    try {
-      await plantsApi.deletePlant(deletingPlant.id);
-      setPlants(plants.filter((p) => p.id !== deletingPlant.id));
-      toast.success(t('plants.plantDeleted'));
-      setIsDeleteDialogOpen(false);
-      setDeletingPlant(null);
-    } catch (error) {
-      const axiosError = error as AxiosError<ApiError>;
-      if (axiosError.response?.status === 409) {
-        toast.error(t('plants.cannotDeleteMessage'));
-      } else {
-        toast.error(axiosError.response?.data?.message || t('errors.failedToDelete'));
-      }
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  //   setIsDeleting(true);
+  //   try {
+  //     await plantsApi.deletePlant(deletingPlant.id);
+  //     setPlants(plants.filter((p) => p.id !== deletingPlant.id));
+  //     toast.success(t('plants.plantDeleted'));
+  //     setIsDeleteDialogOpen(false);
+  //     setDeletingPlant(null);
+  //   } catch (error) {
+  //     const axiosError = error as AxiosError<ApiError>;
+  //     if (axiosError.response?.status === 409) {
+  //       toast.error(t('plants.cannotDeleteMessage'));
+  //     } else {
+  //       toast.error(axiosError.response?.data?.message || t('errors.failedToDelete'));
+  //     }
+  //   } finally {
+  //     setIsDeleting(false);
+  //   }
+  // };
 
   const handleToggleActive = async (plant: Plant) => {
     try {
@@ -533,7 +533,7 @@ export const AdminPlants: React.FC = () => {
       </Modal>
 
       {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
+      {/* <ConfirmDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => {
           setIsDeleteDialogOpen(false);
@@ -545,7 +545,7 @@ export const AdminPlants: React.FC = () => {
         confirmText={t('common.delete')}
         confirmVariant="danger"
         isLoading={isDeleting}
-      />
+      /> */}
     </div>
   );
 };
