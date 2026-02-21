@@ -45,7 +45,7 @@ export const PressingItems: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
 
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<ItemFormData>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ItemFormData>({
     resolver: zodResolver(itemSchema),
   });
 
