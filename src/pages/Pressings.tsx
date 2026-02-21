@@ -345,12 +345,12 @@ export const Pressings: React.FC = () => {
                             >
                               {pressing.active ? t('pressings.deactivate') : t('pressings.activate')}
                             </button>
-                            <button
+                            {/* <button
                               onClick={() => handleDeleteClick(pressing)}
                               className="text-red-600 hover:text-red-900 transition-colors"
                             >
                               {t('common.delete')}
-                            </button>
+                            </button> */}
                           </td>
                         )}
                       </tr>
@@ -399,12 +399,12 @@ export const Pressings: React.FC = () => {
                         >
                           {pressing.active ? t('pressings.deactivate') : t('pressings.activate')}
                         </button>
-                        <button
+                        {/* <button
                           onClick={() => handleDeleteClick(pressing)}
                           className="text-red-600 hover:text-red-900 transition-colors"
                         >
                           {t('common.delete')}
-                        </button>
+                        </button> */}
                       </div>
                     )}
                   </div>

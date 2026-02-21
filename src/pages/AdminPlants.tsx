@@ -245,11 +245,11 @@ export const AdminPlants: React.FC = () => {
                   >
                     {showActiveOnly ? t('plants.activeOnly') : t('plants.showAll')}
                   </Button>
-                  {isAdmin && (
+                  {/* {isAdmin && (
                     <Button onClick={() => setIsCreateModalOpen(true)} className="whitespace-nowrap">
                       {t('plants.createPlant')}
                     </Button>
-                  )}
+                  )} */}
                 </div>
               </div>
               <Input
@@ -334,12 +334,12 @@ export const AdminPlants: React.FC = () => {
                             >
                               {plant.active ? t('plants.deactivate') : t('plants.activate')}
                             </button>
-                            <button
+                            {/* <button
                               onClick={() => handleDeleteClick(plant)}
                               className="text-red-600 hover:text-red-900 transition-colors"
                             >
                               {t('common.delete')}
-                            </button>
+                            </button> */}
                           </td>
                         )}
                       </tr>
@@ -388,12 +388,12 @@ export const AdminPlants: React.FC = () => {
                         >
                           {plant.active ? t('plants.deactivate') : t('plants.activate')}
                         </button>
-                        <button
+                        {/* <button
                           onClick={() => handleDeleteClick(plant)}
                           className="text-red-600 hover:text-red-900 transition-colors"
                         >
                           {t('common.delete')}
-                        </button>
+                        </button> */}
                       </div>
                     )}
                   </div>
