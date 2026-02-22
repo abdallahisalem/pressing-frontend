@@ -183,7 +183,7 @@ export const OrderDetails: React.FC = () => {
   const currentStatusIndex = getStatusIndex(order.status);
   const isInternalStaff = user?.role !== 'PLANT_OPERATOR';
   return (
-    
+
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}
       <nav className="bg-white shadow-sm border-b border-gray-200 no-print">
@@ -245,7 +245,7 @@ export const OrderDetails: React.FC = () => {
                 {t('orderDetails.orderCreated')}: {formatDate(order.createdAt)}
               </p>
             </div>
-            
+
             <div className="flex gap-2 w-full md:w-auto no-print">
               <Button variant="secondary" onClick={handleCopyReferenceCode} className="flex-1 md:flex-none">
                 {t('orderDetails.copyCode')}
@@ -296,10 +296,10 @@ export const OrderDetails: React.FC = () => {
                 <h3 className="font-semibold text-gray-900">{t('orderDetails.orderItems')}</h3>
               </div>
               <OrderItemsTable items={order.items} showPricing={isInternalStaff} />
-              
+
               <div className="p-6 bg-gray-50 flex justify-between items-center">
                 <span className="text-gray-600">
-                   {order.items.reduce((sum, i) => sum + i.quantity, 0)} {t('orders.items')}
+                  {order.items.reduce((sum, i) => sum + i.quantity, 0)} {t('orders.items')}
                 </span>
                 {isInternalStaff && (
                   <span className="text-xl font-bold text-gray-900">
@@ -314,15 +314,15 @@ export const OrderDetails: React.FC = () => {
           <aside className="space-y-6">
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 no-print">
               <h3 className="font-semibold text-gray-900 mb-6">{t('orderDetails.statusManagement')}</h3>
-              
+
               {/* Compact Status Progress */}
               <div className="space-y-4 mb-8">
-                 <StatusStepper
-                    currentStatus={order.status}
-                    allStatuses={ALL_STATUSES}
-                    currentIndex={currentStatusIndex}
-                    statusHistory={order.statusHistory}
-                 />
+                <StatusStepper
+                  currentStatus={order.status}
+                  allStatuses={ALL_STATUSES}
+                  currentIndex={currentStatusIndex}
+                  statusHistory={order.statusHistory}
+                />
               </div>
 
               <div className="space-y-3">
@@ -342,25 +342,26 @@ export const OrderDetails: React.FC = () => {
         </div>
       </main>
 
- {/* Workflow Location Indicator */}
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                <div className={`p-3 rounded ${['CREATED', 'COLLECTED', 'READY', 'DELIVERED'].includes(order.status) ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                  <p className="text-xs text-gray-500 uppercase">{t('orderDetails.atPressing')}</p>
-                  <p className="font-medium">{order.pressingName}</p>
-                </div>
-                <div className={`p-3 rounded ${['COLLECTED', 'DISPATCHED'].includes(order.status) ? 'bg-purple-100' : 'bg-gray-100'}`}>
-                  <p className="text-xs text-gray-500 uppercase">{t('orderDetails.inTransit')}</p>
-                  <p className="font-medium">{['COLLECTED', 'DISPATCHED'].includes(order.status) ? t('orderDetails.onTheWay') : '-'}</p>
-                </div>
-                <div className={`p-3 rounded ${['RECEIVED_AT_PLANT'].includes(order.status) ? 'bg-orange-100' : 'bg-gray-100'}`}>
-                  <p className="text-xs text-gray-500 uppercase">{t('orderDetails.atPlant')}</p>
-                  <p className="font-medium">{order.plantName || '-'}</p>
-                </div>
-              </div>
+      {/* Workflow Location Indicator */}
+      {order.status !== 'DELIVERED' && (
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+            <div className={`p-3 rounded ${['CREATED', 'COLLECTED', 'READY'].includes(order.status) ? 'bg-blue-100' : 'bg-gray-100'}`}>
+              <p className="text-xs text-gray-500 uppercase">{t('orderDetails.atPressing')}</p>
+              <p className="font-medium">{order.pressingName}</p>
             </div>
+            <div className={`p-3 rounded ${['COLLECTED', 'DISPATCHED'].includes(order.status) ? 'bg-purple-100' : 'bg-gray-100'}`}>
+              <p className="text-xs text-gray-500 uppercase">{t('orderDetails.inTransit')}</p>
+              <p className="font-medium">{['COLLECTED', 'DISPATCHED'].includes(order.status) ? t('orderDetails.onTheWay') : '-'}</p>
+            </div>
+            <div className={`p-3 rounded ${['RECEIVED_AT_PLANT'].includes(order.status) ? 'bg-orange-100' : 'bg-gray-100'}`}>
+              <p className="text-xs text-gray-500 uppercase">{t('orderDetails.atPlant')}</p>
+              <p className="font-medium">{order.plantName || '-'}</p>
+            </div>
+          </div>
+        </div>)}
       {/* Main Content */}
- 
+
       {/* Record Payment Modal */}
       {isPaymentModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -383,11 +384,10 @@ export const OrderDetails: React.FC = () => {
                     <button
                       key={method.value}
                       onClick={() => setSelectedPaymentMethod(method.value)}
-                      className={`p-3 border rounded-lg text-sm font-medium transition-colors ${
-                        selectedPaymentMethod === method.value
+                      className={`p-3 border rounded-lg text-sm font-medium transition-colors ${selectedPaymentMethod === method.value
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
                           : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                      }`}
+                        }`}
                     >
                       {t(method.labelKey)}
                     </button>
@@ -434,7 +434,7 @@ export const OrderDetails: React.FC = () => {
       `}</style>
     </div>
   );
-  
+
 };
 
 
@@ -453,7 +453,7 @@ const DataField = ({ label, value, bold }: { label: string; value: string | unde
   </div>
 );
 const StatusStepper = ({ currentStatus, allStatuses, currentIndex, statusHistory }: { currentStatus: OrderStatus; allStatuses: OrderStatus[]; currentIndex: number; statusHistory?: StatusHistoryEntry[] }) => {
-    const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Build a map from status -> history entry for quick lookup
   const historyMap = new Map<string, StatusHistoryEntry>();
@@ -485,13 +485,12 @@ const StatusStepper = ({ currentStatus, allStatuses, currentIndex, statusHistory
           <div key={status} className="flex items-start gap-3">
             <div className="flex flex-col items-center">
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all border-2 ${
-                  isActive
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all border-2 ${isActive
                     ? 'bg-blue-600 border-blue-600 text-white ring-4 ring-blue-50'
                     : isCompleted
-                    ? 'bg-green-500 border-green-500 text-white'
-                    : 'bg-white border-gray-300 text-gray-400'
-                }`}
+                      ? 'bg-green-500 border-green-500 text-white'
+                      : 'bg-white border-gray-300 text-gray-400'
+                  }`}
               >
                 {isCompleted ? '✓' : index + 1}
               </div>
