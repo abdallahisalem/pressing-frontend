@@ -8,13 +8,11 @@ interface StatusBadgeProps {
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, type = 'order' }) => {
   const getStatusStyles = () => {
     if (type === 'order') {
-      // 8-stage workflow colors
+      // 6-stage workflow colors
       const orderStyles: Record<OrderStatus, string> = {
         CREATED: 'bg-blue-100 text-blue-800',           // New order
         COLLECTED: 'bg-purple-100 text-purple-800',     // In transit to plant
         RECEIVED_AT_PLANT: 'bg-orange-100 text-orange-800', // Arrived at plant
-        PROCESSING: 'bg-yellow-100 text-yellow-800',    // Being processed
-        PROCESSED: 'bg-lime-100 text-lime-800',         // Processing complete
         DISPATCHED: 'bg-purple-100 text-purple-800',    // In transit to pressing
         READY: 'bg-green-100 text-green-800',           // Ready for pickup
         DELIVERED: 'bg-gray-100 text-gray-800',         // Completed

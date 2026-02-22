@@ -8,20 +8,18 @@ import { useAuth } from '../contexts/AuthContext';
 import type { ApiError, BulkUpdateOrderStatusRequest, Order, OrderStatus } from '../types';
 import { toast } from '../utils';
 import { formatDate } from '../utils';
-// All 8 order statuses in workflow order
+// All order statuses in workflow order
 const ALL_STATUSES: OrderStatus[] = [
   'CREATED',
   'COLLECTED',
   'RECEIVED_AT_PLANT',
-  'PROCESSING',
-  'PROCESSED',
   'DISPATCHED',
   'READY',
   'DELIVERED',
 ];
 
 // Status groups for plant operator
-const PLANT_STATUSES: OrderStatus[] = ['RECEIVED_AT_PLANT', 'PROCESSING', 'PROCESSED', 'DISPATCHED'];
+const PLANT_STATUSES: OrderStatus[] = ['RECEIVED_AT_PLANT', 'DISPATCHED'];
 
 // Valid status transitions by role - only allows moving to the NEXT status
 const getNextStatus = (currentStatus: OrderStatus, role: string): OrderStatus | null => {
@@ -45,13 +43,9 @@ const getNextStatus = (currentStatus: OrderStatus, role: string): OrderStatus | 
   if (role === 'PLANT_OPERATOR') {
     // PLANT_OPERATOR transitions at plant:
     // COLLECTED → RECEIVED_AT_PLANT (accept at plant)
-    // RECEIVED_AT_PLANT → PROCESSING (start processing)
-    // PROCESSING → PROCESSED (complete processing)
-    // PROCESSED → DISPATCHED (send back to pressing)
+    // RECEIVED_AT_PLANT → DISPATCHED (send back to pressing)
     if (currentStatus === 'COLLECTED') return 'RECEIVED_AT_PLANT';
-    if (currentStatus === 'RECEIVED_AT_PLANT') return 'PROCESSING';
-    if (currentStatus === 'PROCESSING') return 'PROCESSED';
-    if (currentStatus === 'PROCESSED') return 'DISPATCHED';
+    if (currentStatus === 'RECEIVED_AT_PLANT') return 'DISPATCHED';
     return null;
   }
 
@@ -94,7 +88,7 @@ export const Orders: React.FC = () => {
       // if (user.role === 'PLANT_OPERATOR' && user.plantId) {
       //   // Plant operator sees:
       //   // 1. All COLLECTED orders (visible to ALL plant operators - incoming)
-      //   // 2. Orders at their plant (RECEIVED_AT_PLANT, PROCESSING, PROCESSED, DISPATCHED)
+      //   // 2. Orders at their plant (RECEIVED_AT_PLANT, DISPATCHED)
       //   const [collectedOrders, plantOrders] = await Promise.all([
       //     ordersApi.getCollectedOrders(),
       //     ordersApi.getAllOrders(),

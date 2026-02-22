@@ -9,13 +9,11 @@ import type { Order, OrderStatus, PaymentMethod, StatusHistoryEntry } from '../t
 import type { AxiosError } from 'axios';
 import type { ApiError } from '../types';
 
-// All 8 order statuses in workflow order
+// All order statuses in workflow order
 const ALL_STATUSES: OrderStatus[] = [
   'CREATED',
   'COLLECTED',
   'RECEIVED_AT_PLANT',
-  'PROCESSING',
-  'PROCESSED',
   'DISPATCHED',
   'READY',
   'DELIVERED',
@@ -90,13 +88,9 @@ export const OrderDetails: React.FC = () => {
     if (user.role === 'PLANT_OPERATOR') {
       // PLANT_OPERATOR transitions at plant:
       // COLLECTED → RECEIVED_AT_PLANT (accept at plant)
-      // RECEIVED_AT_PLANT → PROCESSING (start processing)
-      // PROCESSING → PROCESSED (complete processing)
-      // PROCESSED → DISPATCHED (send back to pressing)
+      // RECEIVED_AT_PLANT → DISPATCHED (send back to pressing)
       if (currentStatus === 'COLLECTED') return 'RECEIVED_AT_PLANT';
-      if (currentStatus === 'RECEIVED_AT_PLANT') return 'PROCESSING';
-      if (currentStatus === 'PROCESSING') return 'PROCESSED';
-      if (currentStatus === 'PROCESSED') return 'DISPATCHED';
+      if (currentStatus === 'RECEIVED_AT_PLANT') return 'DISPATCHED';
       return null;
     }
 
@@ -359,7 +353,7 @@ export const OrderDetails: React.FC = () => {
                   <p className="text-xs text-gray-500 uppercase">{t('orderDetails.inTransit')}</p>
                   <p className="font-medium">{['COLLECTED', 'DISPATCHED'].includes(order.status) ? t('orderDetails.onTheWay') : '-'}</p>
                 </div>
-                <div className={`p-3 rounded ${['RECEIVED_AT_PLANT', 'PROCESSING', 'PROCESSED'].includes(order.status) ? 'bg-orange-100' : 'bg-gray-100'}`}>
+                <div className={`p-3 rounded ${['RECEIVED_AT_PLANT'].includes(order.status) ? 'bg-orange-100' : 'bg-gray-100'}`}>
                   <p className="text-xs text-gray-500 uppercase">{t('orderDetails.atPlant')}</p>
                   <p className="font-medium">{order.plantName || '-'}</p>
                 </div>

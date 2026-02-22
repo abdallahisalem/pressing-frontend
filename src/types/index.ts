@@ -123,13 +123,11 @@ export interface UpdatePressingItemRequest {
   price: number;
 }
 
-// Order Management Types - 8-stage workflow
+// Order Management Types - 6-stage workflow
 export type OrderStatus =
   | 'CREATED'           // Order created at pressing
   | 'COLLECTED'         // Picked up from pressing by driver
   | 'RECEIVED_AT_PLANT' // Arrived at plant facility
-  | 'PROCESSING'        // Being cleaned/processed at plant
-  | 'PROCESSED'         // Cleaning complete
   | 'DISPATCHED'        // Sent back to pressing
   | 'READY'             // Back at pressing, ready for client pickup
   | 'DELIVERED';        // Given to client

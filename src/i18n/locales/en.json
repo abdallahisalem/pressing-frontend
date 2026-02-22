@@ -357,8 +357,6 @@
       "CREATED": "Created",
       "COLLECTED": "Collected",
       "RECEIVED_AT_PLANT": "At Plant",
-      "PROCESSING": "Processing",
-      "PROCESSED": "Processed",
       "DISPATCHED": "Dispatched",
       "READY": "Ready",
       "DELIVERED": "Delivered"

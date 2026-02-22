@@ -357,8 +357,6 @@
       "CREATED": "جديد",
       "COLLECTED": "تم الاستلام",
       "RECEIVED_AT_PLANT": "في المصنع",
-      "PROCESSING": "قيد المعالجة",
-      "PROCESSED": "تمت المعالجة",
       "DISPATCHED": "تم الإرسال",
       "READY": "جاهز",
       "DELIVERED": "تم التسليم"

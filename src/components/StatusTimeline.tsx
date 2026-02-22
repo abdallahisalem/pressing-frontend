@@ -11,8 +11,6 @@ const STATUS_ICONS: Record<OrderStatus, string> = {
   CREATED: '\u{1F4DD}',        // Memo
   COLLECTED: '\u{1F69A}',      // Truck
   RECEIVED_AT_PLANT: '\u{1F4E5}', // Inbox tray
-  PROCESSING: '\u{2699}\uFE0F',  // Gear
-  PROCESSED: '\u{2705}',        // Check mark
   DISPATCHED: '\u{1F4E6}',     // Package
   READY: '\u{1F3C1}',          // Checkered flag
   DELIVERED: '\u{1F389}',      // Party popper
