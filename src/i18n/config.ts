@@ -19,17 +19,19 @@ i18n
     },
   });
 
-// Update document direction and lang attribute
+// Update document direction, lang attribute, and title
 i18n.on('languageChanged', (lng) => {
   const dir = lng === 'ar' ? 'rtl' : 'ltr';
   document.documentElement.dir = dir;
   document.documentElement.lang = lng;
+  document.title = i18n.t('dashboard.title');
   localStorage.setItem('language', lng);
 });
 
-// Set initial direction
+// Set initial direction and title
 const initialDir = savedLanguage === 'ar' ? 'rtl' : 'ltr';
 document.documentElement.dir = initialDir;
 document.documentElement.lang = savedLanguage;
+document.title = savedLanguage === 'ar' ? 'نظام إدارة المغسلة' : 'Pressing Management System';
 
 export default i18n;
